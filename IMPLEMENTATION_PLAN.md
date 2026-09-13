@@ -273,7 +273,7 @@ Implementation and future features must use descriptive feature branches. Inspec
 At the time this plan was saved, only this plan and the bootstrap `AGENTS.md` had been created. No application dependencies, source code, or tests had been added.
 
 - [x] Stage 1: Foundation and project map
-- [ ] Stage 2: First local exchange
+- [x] Stage 2: First local exchange
 - [ ] Stage 3: Streaming transport
 - [ ] Stage 4: Reasoning and response states
 - [ ] Stage 5: Conversation and chat interface
