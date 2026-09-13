@@ -5,7 +5,7 @@ const environment = z.object({
   OLLAMA_BASE_URL: z.url().refine(url => ['http:', 'https:'].includes(new URL(url).protocol)).default('http://127.0.0.1:11434/v1'),
   OLLAMA_MODEL: z.string().min(1).default('qwen3.5:4b'),
   GEMINI_API_KEY: z.string().default(''),
-  GEMINI_MODEL: z.string().min(1).default('gemini-2.5-flash'),
+  GEMINI_MODEL: z.string().min(1).default('gemini-3.8-flash'),
   FIRST_ACTIVITY_MS: positive(120000), IDLE_MS: positive(60000), OVERALL_MS: positive(300000), RATE_LIMIT: positive(10),
 });
 export function loadConfig(env: Record<string, string | undefined> = process.env) { return environment.parse(env); }

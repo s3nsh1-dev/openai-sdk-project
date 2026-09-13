@@ -68,7 +68,7 @@ Server-only environment configuration:
 - Ollama URL defaults to `http://127.0.0.1:11434/v1`.
 - Ollama model defaults to the installed `qwen3.5:4b`.
 - Gemini uses Google's OpenAI-compatible endpoint, `https://generativelanguage.googleapis.com/v1beta/openai/`.
-- Gemini model defaults to `gemini-2.5-flash`, configurable through `.env`. At planning time, it had a documented free tier. Account availability and quotas require verification with the user's key. See [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) and [deprecations](https://ai.google.dev/gemini-api/docs/deprecations).
+- Gemini model defaults to `gemini-3.8-flash`, configurable through `.env`. The user selected this model during implementation, replacing the original 2.5 Flash default. Account availability and quotas require verification with the user's key. See [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) and [deprecations](https://ai.google.dev/gemini-api/docs/deprecations).
 - Gemini is unavailable in the UI until its key is configured.
 - Credentials and provider URLs never come from chat requests.
 - Keep real secrets in an ignored local `.env`; provide a documented `.env.example` containing placeholders only. Never expose secrets through frontend environment variables or logs.
@@ -277,7 +277,7 @@ At the time this plan was saved, only this plan and the bootstrap `AGENTS.md` ha
 - [x] Stage 3: Streaming transport
 - [x] Stage 4: Reasoning and response states
 - [x] Stage 5: Conversation and chat interface
-- [ ] Stage 6: Cancellation and failure recovery
+- [x] Stage 6: Cancellation and failure recovery
 - [ ] Stage 7: Gemini and provider selection
 - [ ] Stage 8: Verification and handoff
 

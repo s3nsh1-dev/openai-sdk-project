@@ -3,7 +3,7 @@ import { z } from 'zod';
 const chunkSchema = z.object({
   choices: z.array(z.object({
     delta: z.object({ content: z.string().nullish(), reasoning: z.string().nullish(), reasoning_content: z.string().nullish() }),
-    finish_reason: z.string().nullish(),
+    finish_reason: z.enum(['stop','length','content_filter','tool_calls','function_call']).nullish(),
   })),
   usage: z.object({prompt_tokens:z.number().nonnegative(),completion_tokens:z.number().nonnegative(),total_tokens:z.number().nonnegative()}).nullish(),
 });
