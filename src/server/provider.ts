@@ -8,6 +8,6 @@ export function localClient(config: Config) {
 export async function streamLocal(config: Config, input: ChatRequest, signal: AbortSignal) {
   return localClient(config).chat.completions.create({
     model: config.OLLAMA_MODEL, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...input.messages],
-    max_tokens: 1024, reasoning_effort: 'none', stream: true, stream_options: { include_usage: true },
+    max_tokens: 1024, ...(input.thinking ? {} : { reasoning_effort: 'none' as const }), stream: true, stream_options: { include_usage: true },
   }, { signal });
 }
