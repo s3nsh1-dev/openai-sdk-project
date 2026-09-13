@@ -2,20 +2,17 @@ import { expect, it } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/server/app';
 import { loadConfig } from '../src/server/config';
-import { listen, close } from './helpers/servers';
-it('sends a server-owned prompt through the SDK and returns the answer', async () => {
+import { close } from './helpers/servers';
+import { fakeProvider, chunk } from './helpers/provider';
+it('sends a server-owned prompt through the SDK and streams the answer', async () => {
   let received: Record<string, unknown> = {};
-  const fake = await listen(async (req, res) => {
-    let body = ''; for await (const part of req) body += part;
-    received = JSON.parse(body);
-    res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ id: 'fixture', choices: [{ message: { role: 'assistant', content: '4' }, finish_reason: 'stop', index: 0 }] }));
-  });
+  const fake = await fakeProvider([chunk({content:'4'}), chunk({}, 'stop')], {onRequest: body => { received = body; }});
   try {
     const app = createApp(loadConfig({ OLLAMA_BASE_URL: `${fake.url}/v1` }));
     const result = await request(app).post('/api/chat').send({ requestId: 'test-1', provider: 'local', thinking: false, messages: [{ role: 'user', content: '2 + 2?' }] });
     expect(result.status).toBe(200);
-    expect(result.body.answer).toBe('4');
+    expect(result.text).toContain('"type":"answer_delta","requestId":"test-1","text":"4"');
+    expect(result.text).toContain('"outcome":"completed"');
     expect(received.model).toBe('qwen3.5:4b');
     expect(received.reasoning_effort).toBe('none');
     expect((received.messages as {role:string}[])[0].role).toBe('system');

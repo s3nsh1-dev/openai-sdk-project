@@ -274,7 +274,7 @@ At the time this plan was saved, only this plan and the bootstrap `AGENTS.md` ha
 
 - [x] Stage 1: Foundation and project map
 - [x] Stage 2: First local exchange
-- [ ] Stage 3: Streaming transport
+- [x] Stage 3: Streaming transport
 - [ ] Stage 4: Reasoning and response states
 - [ ] Stage 5: Conversation and chat interface
 - [ ] Stage 6: Cancellation and failure recovery

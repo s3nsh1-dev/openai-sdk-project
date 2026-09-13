@@ -1,5 +1,5 @@
 # Handoff
 
-Stage 2 complete on `implement-v1`. Stage 1 commit: `de2f3d3`. Five deterministic tests, lint, and type checking pass. One live local exchange through Express and the SDK passed. No Gemini requests.
+Stage 3 complete. Milestones: Stage 1 `de2f3d3`; Stage 2 `264e653`. Ten deterministic tests, lint, and type checking pass. Live Ollama non-streaming exchange was verified in Stage 2. Streaming live checks remain for later stages. No Gemini calls.
 
-Next: replace temporary non-streaming chat with SSE in Stage 3.
+Next: Stage 4 reasoning normalization and explicit response states.
