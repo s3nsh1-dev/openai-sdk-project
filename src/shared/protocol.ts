@@ -19,3 +19,10 @@ export const streamEventSchema = z.discriminatedUnion('type', [
 ]);
 export type StreamEvent = z.infer<typeof streamEventSchema>;
 export type Usage = z.infer<typeof usageSchema>;
+
+const publicProviderSchema = z.object({name:z.string(),model:z.string(),available:z.boolean()});
+export const publicConfigSchema = z.object({
+  providers: z.object({local:publicProviderSchema,gemini:publicProviderSchema}),
+  limits: z.object({local:z.object({context:z.number(),output:z.number(),input:z.number()}),gemini:z.object({output:z.number(),input:z.number()})}),
+});
+export type PublicConfig = z.infer<typeof publicConfigSchema>;

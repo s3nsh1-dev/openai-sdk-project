@@ -3,18 +3,18 @@ import { estimateInput, inputBudget } from './budget';
 import type { Config } from './config';
 import { chatRequestSchema, type StreamEvent, type Usage } from '../shared/protocol';
 import { normalizeChunk, StreamFailure } from './normalize';
-import { streamLocal } from './provider';
+import { createProviders, type Providers } from './provider';
 import { safeError } from './errors';
 import { writeFrame } from './sse';
 export type RequestLog = {requestId:string;provider:string;durationMs:number;finishReason:string;usage?:Usage};
-export function createChatHandler(config: Config, log: (entry: RequestLog) => void = entry => console.info(JSON.stringify(entry))) {
+export function createChatHandler(config: Config, providers: Providers = createProviders(config), log: (entry: RequestLog) => void = entry => console.info(JSON.stringify(entry))) {
   const active = new Set<string>();
   let recent: number[] = [];
   return async function chat(req: Request, res: Response) {
     const parsed = chatRequestSchema.safeParse(req.body);
     if (!parsed.success) { res.status(400).json({error:'Invalid conversation input. Use alternating user/assistant text messages, ending with user.'}); return; }
     const input = parsed.data;
-    if (input.provider !== 'local') { res.status(503).json({error:'Gemini is not enabled in this checkpoint.'}); return; }
+    if (input.provider === 'gemini' && !config.GEMINI_API_KEY.trim()) { res.status(503).json({error:'Gemini API key is not configured on the server. Select Local or configure the key.'}); return; }
     if (estimateInput(input.messages) > inputBudget(input.provider)) { res.status(413).json({error:'Conversation exceeds the input budget. Shorten your message or start a new chat. History is never silently trimmed.'}); return; }
     if (active.has(input.provider)) { res.status(409).json({error:'This provider is busy with another request. Stop it or wait, then retry.'}); return; }
     const started = Date.now();
@@ -41,8 +41,8 @@ export function createChatHandler(config: Config, log: (entry: RequestLog) => vo
       if (event.type === 'finish' || event.type === 'error') terminal = true;
     };
     try {
-      await emit({type:'start',requestId:input.requestId,provider:input.provider,model:config.OLLAMA_MODEL});
-      const stream = await streamLocal(config,input,controller.signal);
+      await emit({type:'start',requestId:input.requestId,provider:input.provider,model:providers.model(input.provider)});
+      const stream = await providers.stream(input,controller.signal);
       for await (const chunk of stream) {
         clearTimeout(firstTimer); clearTimeout(idleTimer);
         idleTimer = setTimeout(() => expire('idle_timeout','The provider stopped sending data. Partial output is preserved; retry explicitly.'),config.IDLE_MS);

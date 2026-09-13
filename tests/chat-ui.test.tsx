@@ -7,7 +7,8 @@ import { App } from '../src/client/App';
 afterEach(() => {cleanup();vi.unstubAllGlobals();});
 it('stops partial output and retries the same user turn without duplicating it', async () => {
   const bodies: {requestId:string;messages:unknown[]}[] = [];
-  vi.stubGlobal('fetch',vi.fn(async (_url,init:RequestInit) => {
+  vi.stubGlobal('fetch',vi.fn(async (url,init:RequestInit) => {
+    if (url === '/api/config') return Response.json({providers:{local:{name:'Local',model:'qwen3.5:4b',available:true},gemini:{name:'Gemini',model:'gemini-3.8-flash',available:false}},limits:{local:{context:4096,output:1024,input:2816},gemini:{output:4096,input:24000}}});
     const body = JSON.parse(init.body as string); bodies.push(body);
     const encoder = new TextEncoder();
     return new Response(new ReadableStream({start(controller) {

@@ -17,7 +17,9 @@
     "build": "npm run typecheck && vite build && esbuild src/server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server/index.js",
     "start": "node --env-file-if-exists=.env dist/server/index.js",
     "test:browser": "playwright test",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:browser"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:browser",
+    "smoke:local": "tsx --env-file-if-exists=.env scripts/smoke.ts local",
+    "smoke:gemini": "tsx --env-file-if-exists=.env scripts/smoke.ts gemini"
   },
   "dependencies": {
     "eventsource-parser": "^4.1.0",

@@ -278,7 +278,7 @@ At the time this plan was saved, only this plan and the bootstrap `AGENTS.md` ha
 - [x] Stage 4: Reasoning and response states
 - [x] Stage 5: Conversation and chat interface
 - [x] Stage 6: Cancellation and failure recovery
-- [ ] Stage 7: Gemini and provider selection
+- [x] Stage 7: Gemini and provider selection
 - [ ] Stage 8: Verification and handoff
 
 Update this checklist and `docs/handoff.md` with actual evidence as implementation proceeds. A passed fixture test does not prove that a live provider works.
