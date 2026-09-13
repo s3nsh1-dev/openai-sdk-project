@@ -2,6 +2,7 @@
 
 | Issue | Stage | Status |
 |---|---|---|
+| [ISSUE-003](#issue-003-a-failing-validation-test-reached-the-local-model) | 5 | Resolved |
 | [ISSUE-002](#issue-002-express-error-handler-arity-and-linting) | 2 | Resolved |
 | [ISSUE-001](#issue-001-sandbox-blocked-git-and-local-network) | 1 | Resolved through approved escalation |
 
@@ -20,3 +21,11 @@ Lesson: inspect the first error in a pipeline. An empty HTTP response can cause 
 Stage 2 linting rejected the unused `_next` parameter in the four-argument error middleware. Express identifies error handlers by their arity, so removing the parameter would change routing behavior. The lint rule did not yet recognize the intentional underscore convention.
 
 The fix configures `argsIgnorePattern: '^_'` for unused function parameters. This preserves Express's required signature while keeping unused local variables checked. No alternative implementation was attempted. Verification: rerunning ESLint passed, and the integration tests still pass. Lesson: framework-required parameters need an explicit lint convention. Status: resolved.
+
+## ISSUE-003: A failing validation test reached the local model
+
+Stage 5 introduced a test expecting oversized input to be rejected. Before the budget guard existed, the test used default configuration and attempted an actual Ollama request, timing out after ten seconds. It was meant to be deterministic. No Gemini endpoint or key was used.
+
+Investigation traced the default Ollama URL through `createApp(loadConfig({}))`. A negative validation test can reach a provider precisely when the validation being tested is broken. Adding the budget fixed that behavior, but did not protect future regression runs from accidental live calls.
+
+The solution adds `tests/network-guard.ts` to Vitest setup. Test fetches may reach temporary loopback fixture ports only; the Ollama port and all external hosts are denied. Integration tests still run the real SDK against fake HTTP servers. Verification: the deterministic suite passes with this guard installed. Lesson: make live-provider isolation independent of the behavior under test. Status: resolved for Vitest; Stage 8 browser setup must apply its own fixture-only provider configuration.

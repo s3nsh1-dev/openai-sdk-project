@@ -1,5 +1,5 @@
 # Handoff
 
-Stage 4 complete. Earlier milestones: Stage 1 `de2f3d3`, Stage 2 `264e653`, Stage 3 `369413a`. Eighteen deterministic tests, lint, and type checking pass. Live Ollama exchange verified in Stage 2; remaining live streaming checks are pending. No Gemini calls.
+Stage 5 complete. Earlier milestones: 1 `de2f3d3`, 2 `264e653`, 3 `369413a`, 4 `456d694`. Twenty-two deterministic tests, lint, and type checking pass. Vitest now blocks real-provider fetches even when validation fails. Live Ollama exchange verified in Stage 2. No Gemini calls.
 
-Next: Stage 5 conversation history, context limits, safe Markdown, and chat interaction.
+Next: Stage 6 cancellation, retries, deadlines, concurrency and rate guards.

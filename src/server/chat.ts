@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { estimateInput, inputBudget } from './budget';
 import type { Config } from './config';
 import { chatRequestSchema, type StreamEvent, type Usage } from '../shared/protocol';
 import { normalizeChunk, StreamFailure } from './normalize';
@@ -7,6 +8,7 @@ export async function chat(config: Config, req: Request, res: Response) {
   const parsed = chatRequestSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: 'Invalid conversation input.' }); return; }
   const input = parsed.data;
+  if (estimateInput(input.messages) > inputBudget(input.provider)) { res.status(413).json({ error: 'Conversation exceeds the input budget. Shorten your message or start a new chat. History is never silently trimmed.' }); return; }
   if (input.provider !== 'local') { res.status(503).json({ error: 'Gemini is not enabled in this checkpoint.' }); return; }
   const controller = new AbortController();
   res.on('close', () => controller.abort());
