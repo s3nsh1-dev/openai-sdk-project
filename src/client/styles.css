@@ -1,0 +1,4 @@
+:root { font-family: system-ui, sans-serif; color: #23312c; background: #f5f5ef; font-synthesis: none; }
+body { margin: 0; } main { max-width: 850px; margin: auto; padding: 40px 24px; }
+.eyebrow { color: #426455; font-size: 12px; letter-spacing: .16em; font-weight: 700; }
+button, textarea, select { font: inherit; } button { cursor: pointer; }
