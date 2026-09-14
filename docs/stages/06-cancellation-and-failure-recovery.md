@@ -17,3 +17,5 @@ Verification: 28 deterministic tests passed before adding the separate drain-lis
 Exercise: explain why `AbortController.abort()` alone is insufficient to prevent a late UI update. See [ISSUE-004](../issues-and-solutions.md#issue-004-an-abort-can-look-like-an-ordinary-end-of-iteration).
 
 Milestone: `feat(stage-6): add cancellation deadlines and failure recovery`. The user's Gemini model change to `gemini-3.8-flash` is included in configuration and the plan; `.env` remains untouched and ignored.
+
+Actual milestone commit: `286ed9a`.

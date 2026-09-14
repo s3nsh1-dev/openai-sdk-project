@@ -13,3 +13,5 @@ Verification: 10 deterministic tests passed, including one-byte UTF-8 reads, mul
 Exercise: change the read sizes in `tests/stream.test.ts`. Explain why parsing each `reader.read()` result as JSON fails.
 
 Milestone: `feat(stage-3): stream local answers over SSE`. No new implementation difficulty occurred in this stage; see the existing [journal](../issues-and-solutions.md).
+
+Actual milestone commit: `369413a`.

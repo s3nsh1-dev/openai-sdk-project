@@ -15,3 +15,5 @@ Enter sends; Shift+Enter adds a newline; composing IME input does not submit. St
 Verification: 22 deterministic tests passed, including React Testing Library checks. Lint and type checking passed. Run `npm run dev` for the multi-turn checkpoint. Exercise: inspect a follow-up request in browser devtools and compare it with the visible attempt data.
 
 Milestone: `feat(stage-5): add bounded conversation and safe chat interface`. See [ISSUE-003](../issues-and-solutions.md#issue-003-a-failing-validation-test-reached-the-local-model) for why tests need a network guard independent of validation.
+
+Actual milestone commit: `942d8b9`.

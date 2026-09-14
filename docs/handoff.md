@@ -11,7 +11,7 @@ V1 is implemented through all eight stages on `implement-v1`. The branch is left
 | 5 | `942d8b9` | Bounded history and safe chat UI |
 | 6 | `286ed9a` | Stop, Retry, deadlines, concurrency, and errors |
 | 7 | `8145cb0` | Explicit Gemini 3.8 Flash and provider isolation |
-| 8 | Recorded after this milestone commit | Browser verification, CI, review fixes, and learning handoff |
+| 8 | `2598c5d` | Browser verification, CI, review fixes, and learning handoff |
 
 ## Verification completed on September 14, 2026
 

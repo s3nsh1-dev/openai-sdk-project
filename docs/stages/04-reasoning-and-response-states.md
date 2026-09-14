@@ -15,3 +15,5 @@ Verification: 18 deterministic tests passed; lint and type checking passed. Test
 Exercise: follow a reasoning-only `length` fixture through the normalizer and reducer. Why must an empty answer be checked after examining the finish reason?
 
 Milestone: `feat(stage-4): separate reasoning and response lifecycle states`. The reasoning-only behavior was already a planning observation, not an implementation bug. No new difficulty to add to the [journal](../issues-and-solutions.md).
+
+Actual milestone commit: `456d694`.

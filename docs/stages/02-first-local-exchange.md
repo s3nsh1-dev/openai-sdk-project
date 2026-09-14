@@ -13,3 +13,5 @@ Verification: 5 deterministic tests passed; lint and type checking passed. `npx 
 Exercise: trace the three roles from schema through prompt construction. Why is `system` accepted inside the server but rejected at the browser boundary?
 
 Milestone: `feat(stage-2): complete the first local SDK exchange`. See [ISSUE-002](../issues-and-solutions.md#issue-002-express-error-handler-arity-and-linting) for the error-middleware lint convention.
+
+Actual milestone commit: `264e653`.

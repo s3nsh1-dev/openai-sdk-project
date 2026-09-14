@@ -30,3 +30,5 @@ For a later persistence stage, first decide which completed and incomplete attem
 Milestone: `feat(stage-8): verify browser workflows and complete learning handoff`. The following documentation commit records its actual hash. Related findings: [ISSUE-005](../issues-and-solutions.md#issue-005-browser-terminal-events-needed-correlation-before-parser-state), [ISSUE-006](../issues-and-solutions.md#issue-006-playwrights-installed-browser-revision-did-not-match), [ISSUE-007](../issues-and-solutions.md#issue-007-automatic-approval-review-temporarily-blocked-a-live-check), [ISSUE-009](../issues-and-solutions.md#issue-009-disabled-option-assertion-did-not-reflect-native-selection), and [ISSUE-008](../issues-and-solutions.md#issue-008-browser-locator-confused-label-text-with-accessible-name).
 
 The repeated scroll test exposed and verified a queued-effect race fix. See [ISSUE-010](../issues-and-solutions.md#issue-010-a-queued-auto-scroll-overrode-the-readers-position). Five desktop and five mobile repetitions passed after the fix.
+
+Actual milestone commit: `2598c5d`.

@@ -17,3 +17,5 @@ Run `npm run dev` for the checkpoint. `npm run smoke:gemini` is the explicit one
 Exercise: explain why enabling a selector is different from proving that a model is reachable with the account's current quota.
 
 Milestone: `feat(stage-7): add explicit Gemini selection and provider isolation`. No new implementation difficulty occurred; see the existing [journal](../issues-and-solutions.md).
+
+Actual milestone commit: `8145cb0`.

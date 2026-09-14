@@ -18,3 +18,5 @@ Changed files include the package manifest and lockfile, lint/build/test configu
 Milestone: `feat(stage-1): establish React and Express project foundation`. Find it with `git log --oneline --all --grep='feat(stage-1)'`; the next stage records its hash.
 
 Exercise: change a deadline in `.env` to a negative number and observe startup validation, then restore it. Read [ISSUE-001](../issues-and-solutions.md#issue-001-sandbox-blocked-git-and-local-network) for the environment restriction encountered during setup.
+
+Actual milestone commit: `de2f3d3`.
