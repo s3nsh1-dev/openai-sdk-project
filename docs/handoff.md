@@ -2,7 +2,7 @@
 
 ## Latest post-v1 fix
 
-Branch: `fix/provider-thinking`, based on `40191e2`. Fix commit: recorded after commit below. The branch remains unmerged and unpushed.
+Branch: `fix/provider-thinking`, based on `40191e2`. Fix commit: `c98beeb`. The branch remains unmerged and unpushed.
 
 - Gemini now offers an enabled thought-summary checkbox. It requests summaries only when selected and does not pretend to disable Gemini internal thinking. The Local and Gemini preferences are separate and reset with New chat.
 - Local uses spare context for output, while preserving the 4,096 context, 256 safety margin, existing input allowance, and at least 1,024 output tokens. All original model tuning is unchanged.

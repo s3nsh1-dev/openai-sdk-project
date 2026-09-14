@@ -1,6 +1,6 @@
 # Provider thinking controls and local output allocation
 
-This post-v1 fix follows the user's screenshots from September 14, 2026. It is developed on `fix/provider-thinking`, based on the completed v1 branch at `40191e2`. The original eight milestone commits remain unchanged.
+This post-v1 fix follows the user's screenshots from September 14, 2026. It is developed on `fix/provider-thinking`, based on the completed v1 branch at `40191e2`. The verified implementation, tests, and documentation are committed in `c98beeb`. The original eight milestone commits remain unchanged.
 
 ## What went wrong
 
