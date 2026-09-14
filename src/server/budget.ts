@@ -15,3 +15,15 @@ export function estimateInput(messages: ChatRequest['messages']) {
 export function inputBudget(provider: ChatRequest['provider']) {
   return provider === 'local' ? 4096 - 1024 - 256 : 24000;
 }
+
+// Keep the original input allowance, but spend otherwise unused context on output.
+export function outputBudget(
+  provider: ChatRequest['provider'],
+  messages: ChatRequest['messages'],
+) {
+  if (provider === 'gemini') return 4096;
+  const remaining = 4096 - 256 - estimateInput(messages);
+  if (remaining < 1024)
+    throw new Error('Conversation exceeds the local input budget.');
+  return remaining;
+}

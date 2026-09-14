@@ -27,6 +27,12 @@ const fake = await listen(async (req, res) => {
     res.end('data: [DONE]\n\n');
     return;
   }
+  if (input.extra_body?.google?.thinking_config?.include_thoughts)
+    send(
+      chunk({
+        reasoning_content: 'A Gemini thought summary supplied separately.',
+      }),
+    );
   if (input.reasoning_effort !== 'none' && input.model === 'qwen3.5:4b')
     send(
       chunk({ reasoning: 'Consider the binding separately from the value.' }),

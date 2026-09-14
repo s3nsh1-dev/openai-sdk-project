@@ -195,3 +195,33 @@ test('disables Gemini when the server reports no configured key', async ({
     page.getByRole('combobox', { name: 'Provider', exact: true }),
   ).toHaveValue('local');
 });
+test('offers Gemini thought summaries and sends the explicit preference', async ({
+  page,
+}) => {
+  await page
+    .getByRole('combobox', { name: 'Provider', exact: true })
+    .selectOption('gemini');
+  const checkbox = page.getByRole('checkbox', {
+    name: 'Gemini thought summaries',
+  });
+  await expect(checkbox).toBeEnabled();
+  await checkbox.check();
+  const sent = page.waitForRequest(
+    (request) =>
+      request.url().endsWith('/api/chat') && request.method() === 'POST',
+  );
+  await page.getByRole('textbox').fill('Explain a promise');
+  await page.getByRole('textbox').press('Enter');
+  expect((await sent).postDataJSON()).toMatchObject({
+    provider: 'gemini',
+    thinking: true,
+  });
+  await expect(page.getByRole('status')).toHaveText('completed');
+  await expect(page.locator('summary')).toHaveText(
+    'Reasoning supplied by the model',
+  );
+  await page.locator('summary').click();
+  await expect(
+    page.getByText('A Gemini thought summary supplied separately.'),
+  ).toBeVisible();
+});

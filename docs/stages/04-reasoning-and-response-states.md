@@ -17,3 +17,5 @@ Exercise: follow a reasoning-only `length` fixture through the normalizer and re
 Milestone: `feat(stage-4): separate reasoning and response lifecycle states`. The reasoning-only behavior was already a planning observation, not an implementation bug. No new difficulty to add to the [journal](../issues-and-solutions.md).
 
 Actual milestone commit: `456d694`.
+
+Post-v1 update: [provider thinking controls and output allocation](../fixes/provider-thinking.md) changes the fixed local cap and adds selectable Gemini summaries. This stage document describes its original historical milestone.

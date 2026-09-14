@@ -18,10 +18,16 @@ it('rejects Gemini with no key without trying Local', async () => {
   expect(result.status).toBe(503);
   expect(result.body.error).toMatch(/key|configured/i);
 });
-it('uses the explicit Gemini model and output budget without requesting thought summaries', async () => {
+it('requests Gemini thought summaries only when explicitly selected', async () => {
   let body: Record<string, unknown> = {};
   const fake = await fakeProvider(
-    [chunk({ content: 'Gemini answer' }), chunk({}, 'stop')],
+    [
+      chunk({
+        reasoning_content: 'A supplied summary',
+        content: 'Gemini answer',
+      }),
+      chunk({}, 'stop'),
+    ],
     {
       onRequest: (value) => {
         body = value;
@@ -40,10 +46,13 @@ it('uses the explicit Gemini model and output budget without requesting thought 
       .post('/api/chat')
       .send(input);
     expect(result.text).toContain('Gemini answer');
+    expect(result.text).toContain('A supplied summary');
     expect(result.text).toContain('"model":"gemini-3.8-flash"');
     expect(body.max_tokens).toBe(4096);
     expect(body).not.toHaveProperty('reasoning_effort');
-    expect(body).not.toHaveProperty('extra_body');
+    expect(body.extra_body).toEqual({
+      google: { thinking_config: { include_thoughts: true } },
+    });
   } finally {
     await close(fake.server);
   }

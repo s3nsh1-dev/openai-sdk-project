@@ -1,5 +1,19 @@
 # Handoff
 
+## Latest post-v1 fix
+
+Branch: `fix/provider-thinking`, based on `40191e2`. Fix commit: recorded after commit below. The branch remains unmerged and unpushed.
+
+- Gemini now offers an enabled thought-summary checkbox. It requests summaries only when selected and does not pretend to disable Gemini internal thinking. The Local and Gemini preferences are separate and reset with New chat.
+- Local uses spare context for output, while preserving the 4,096 context, 256 safety margin, existing input allowance, and at least 1,024 output tokens. All original model tuning is unchanged.
+- `npm run check` passed: lint, TypeScript, 45 deterministic tests, build, and 20 desktop/mobile browser cases. Formatting and documentation links passed. Focused independent review found no defects.
+- The user's exact Local prompt `teach me about promises` reproduced the old limit at 1,024 completion tokens and 135 answer characters. After the fix it completed normally at 2,425 completion tokens, with 4,583 answer characters. This remains a bounded context: arbitrary long thinking or answers can still be incomplete.
+- The user supplied evidence of successful live Gemini responses and one missing-finish failure. The new summary control is fixture-tested only; no new cloud generation was performed. The isolated stream interruption cannot be diagnosed from the screenshot alone and is not claimed fixed.
+
+See [the fix walkthrough](fixes/provider-thinking.md) and [ISSUE-011](issues-and-solutions.md#issue-011-thinking-controls-and-a-fixed-local-output-cap). Next: restart the development process if needed, reload the tab, and start a new chat to use the updated controls. A production run needs the newly generated build and a restarted `npm start` process.
+
+## Original v1 checkpoint
+
 V1 is implemented through all eight stages on `implement-v1`. The branch is left unmerged and unpushed for review. The repository started without commits; the following are actual chronological checkpoints.
 
 | Stage | Commit | Working result |

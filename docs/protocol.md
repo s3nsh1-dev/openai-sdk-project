@@ -37,7 +37,7 @@ A usage-only chunk can have `choices: []`. A finish reason of `length` maps to i
 
 ## Exact request rules
 
-`requestId` is 1–80 ASCII letters, digits, or hyphens. `provider` is `local` or `gemini`. `thinking` is a boolean and defaults to false if omitted. The message array must have an odd length between 1 and 101, alternate user and assistant, and end with user. Content is trimmed and must contain 1–24,000 characters after trimming. Unknown fields at request and message level are rejected. These limits apply before the provider call.
+`requestId` is 1–80 ASCII letters, digits, or hyphens. `provider` is `local` or `gemini`. `thinking` is a boolean and defaults to false if omitted. For Local it enables local thinking; for Gemini it requests separately supplied thought summaries. Unchecked Gemini summaries do not disable internal thinking. The message array must have an odd length between 1 and 101, alternate user and assistant, and end with user. Content is trimmed and must contain 1–24,000 characters after trimming. Unknown fields at request and message level are rejected. These limits apply before the provider call.
 
 The estimated local input budget is 2,816, counting UTF-8 bytes plus 16 per message and the server prompt. Gemini uses a separate 24,000 estimated-input budget. HTTP 413 reports body or context overflow, with no silent trimming. Reasoning text never belongs in the message array.
 
@@ -86,3 +86,5 @@ data: {"type":"error","requestId":"example-1","code":"idle_timeout","message":"T
 The browser validates application event shapes, ignores IDs that do not match its current request, and closes its reader after one matching terminal event. EOF without one is a connection failure. The reducer separately rejects updates after completion, failure, incomplete output, or Stop. This second check protects state even if another caller misroutes an event.
 
 `GET /api/health` returns `{"status":"ok"}`. `GET /api/config` returns public provider name/model/availability and the numeric limits. Its schema also lives in `src/shared/protocol.ts`. Neither endpoint tests provider generation or returns credentials.
+
+Local `limits.output` in public configuration is an upper ceiling of 3,840 before subtracting estimated input. Each request uses `4096 - 256 - estimateInput(messages)` output tokens, while the unchanged 2,816 input guard guarantees at least 1,024 remain. This shared output budget includes reasoning and answer tokens.

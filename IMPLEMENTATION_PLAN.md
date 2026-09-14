@@ -77,7 +77,7 @@ The interface selects Local or Gemini before the first message. The provider sta
 
 Preserve the user's Ollama GPU, thread, sampling, and context tuning. Add a local thinking toggle, off by default for faster testing. Turning it on demonstrates reasoning streaming.
 
-For Gemini, v1 streams the answer without explicitly requesting thought summaries. Only separately identified reasoning fields may enter the reasoning panel; ordinary answer text is never split using guessed markers. Do not describe private or unavailable reasoning as visible content. A provider's thought summary is not necessarily a full reasoning trace.
+Follow-up requested September 14, 2026: Gemini provides a selectable thought-summary control. It requests `include_thoughts` only when selected; it does not claim to switch Gemini internal thinking off. The original Stage 7 default of answer-only output remains when unchecked. Only separately identified reasoning fields may enter the reasoning panel; ordinary answer text is never split using guessed markers. Do not describe private or unavailable reasoning as visible content. A provider's thought summary is not necessarily a full reasoning trace.
 
 ### Verified planning observations
 
@@ -170,7 +170,7 @@ Support Enter to send, Shift+Enter for a newline, IME composition, keyboard focu
 
 - Validate JSON size, message roles, content, provider selection, and conversation ordering before contacting a model.
 - Accept user and assistant messages only; prepend the server's system instruction.
-- Respect Qwen's verified 4,096-token context. Reserve 1,024 output tokens and a safety margin; use a documented conservative input estimate that includes the prompt and message overhead. Do not present a character estimate or an unrelated model's tokenizer as exact Qwen token accounting.
+- Respect Qwen's verified 4,096-token context. Reserve at least 1,024 output tokens and a 256-token safety margin, and allocate otherwise unused context to local output; use a documented conservative input estimate that includes the prompt and message overhead. Do not present a character estimate or an unrelated model's tokenizer as exact Qwen token accounting.
 - Reject conversations over the application budget with a clear explanation. V1 does not silently trim or summarize history.
 - Keep provider budgets separate. Gemini defaults to a 4,096-token output limit.
 - Disable SDK automatic retries. Retry and Gemini usage always require an explicit action.
@@ -282,3 +282,7 @@ At the time this plan was saved, only this plan and the bootstrap `AGENTS.md` ha
 - [x] Stage 8: Verification and handoff
 
 Update this checklist and `docs/handoff.md` with actual evidence as implementation proceeds. A passed fixture test does not prove that a live provider works.
+
+## Post-v1 fixes
+
+- Provider thinking controls and local output allocation: see [the fix walkthrough](docs/fixes/provider-thinking.md). This follows the user report after the eight v1 milestones and preserves those historical checkpoints.

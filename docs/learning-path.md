@@ -43,3 +43,5 @@ Start the application, send a small question, then read the source in the same o
 Use `git show <hash>:<path>` to study an older file without changing your working tree. To run an old milestone, create a separate worktree only after preserving current changes. Historical commands use the dependencies and files from that milestone.
 
 The [issues journal](issues-and-solutions.md) explains what actually went wrong. Read it alongside the stage documents; the failed assumptions are part of the lesson.
+
+After the original milestones, read [the provider-thinking fix](fixes/provider-thinking.md) to see how user screenshots led to a reproduced token-limit failure, a revised output allocation, and provider-specific controls.

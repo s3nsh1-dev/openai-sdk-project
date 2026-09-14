@@ -61,7 +61,9 @@ export function reduceAttempt(state: Attempt, event: StreamEvent): Attempt {
           event.outcome === 'blocked'
             ? 'The provider blocked this response.'
             : event.outcome === 'incomplete'
-              ? 'The response reached an output limit or ended incomplete. Retry or ask a shorter question.'
+              ? event.reason === 'length'
+                ? 'The response reached its output limit. Reasoning also uses this budget. Ask for a shorter reply or start a new chat.'
+                : 'The provider ended this response before completion. Retry explicitly.'
               : undefined,
       };
     case 'error':

@@ -18,7 +18,7 @@ If `.env` already exists, edit it instead of copying over it. Keep Ollama runnin
 
 Open http://127.0.0.1:5173. Vite proxies `/api` to Express on port 3001. Both bind to loopback. If you change `PORT`, also update the proxy target in `vite.config.ts`.
 
-Type a question and press Enter. Shift+Enter inserts a newline. Local thinking is off initially. Provider selection locks after the first turn; New chat clears the conversation and resets Local. Refreshing also clears history. Only completed exchanges become future context; failed, incomplete, and stopped attempts stay visible until replaced by Retry or cleared.
+Type a question and press Enter. Shift+Enter inserts a newline. Local thinking is off initially. Gemini instead offers a thought-summary checkbox; Gemini thinks internally even when summaries are unchecked. Provider selection locks after the first turn; New chat clears the conversation and resets Local. Refreshing also clears history. Only completed exchanges become future context; failed, incomplete, and stopped attempts stay visible until replaced by Retry or cleared.
 
 ## Configuration
 
@@ -36,7 +36,7 @@ All variables are server-only. Never prefix keys with `VITE_`. `.env` is ignored
 | `OVERALL_MS` | 300000, entire request deadline |
 | `RATE_LIMIT` | 10 accepted chat requests per rolling minute |
 
-The Gemini endpoint is fixed on the server. A request cannot supply a URL, key, or system message. The app does not change Ollama GPU, thread, sampling, or context settings. Its local output cap is 1,024 tokens. Gemini's output cap is 4,096. See [architecture](architecture.md) for the conservative input estimate and trust boundaries.
+The Gemini endpoint is fixed on the server. A request cannot supply a URL, key, or system message. The app does not change Ollama GPU, thread, sampling, or context settings. Local output uses the remaining 4,096-token context after estimated input and a 256-token safety margin. The input allowance still reserves at least 1,024 output tokens. Gemini's output cap is 4,096. See [architecture](architecture.md) for the conservative input estimate and trust boundaries.
 
 ## Commands
 

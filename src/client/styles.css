@@ -352,3 +352,8 @@ select {
 .settings {
   gap: 14px;
 }
+.thinking-help {
+  margin: 7px 0;
+  color: #53694f;
+  font-size: 12px;
+}

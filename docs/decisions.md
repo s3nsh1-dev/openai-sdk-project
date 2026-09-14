@@ -15,3 +15,5 @@
 | Deterministic HTTP fixtures plus separate live smoke commands | Live-provider tests in CI | Fixtures reproduce limits, errors, malformed chunks, and cancellation without quota use. Live smoke checks prove a narrower fact about the actual provider at one point in time. |
 
 Provider references checked during implementation: [Ollama compatibility](https://docs.ollama.com/api/openai-compatibility), [Google compatibility](https://ai.google.dev/gemini-api/docs/openai), [Google models](https://ai.google.dev/gemini-api/docs/models), and [OpenAI SDK documentation](https://developers.openai.com/api/docs/libraries). Installed SDK source was also inspected for abort behavior. Account quotas and live access are not inferred from these pages.
+
+After v1, the user requested usable thinking controls for both providers. The [provider-thinking fix](fixes/provider-thinking.md) adds optional Gemini summaries and spends unused local context on output. Original model tuning, cloud quota isolation, and input validation remain unchanged.

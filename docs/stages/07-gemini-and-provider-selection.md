@@ -19,3 +19,5 @@ Exercise: explain why enabling a selector is different from proving that a model
 Milestone: `feat(stage-7): add explicit Gemini selection and provider isolation`. No new implementation difficulty occurred; see the existing [journal](../issues-and-solutions.md).
 
 Actual milestone commit: `8145cb0`.
+
+Post-v1 update: [provider thinking controls and output allocation](../fixes/provider-thinking.md) changes the fixed local cap and adds selectable Gemini summaries. This stage document describes its original historical milestone.

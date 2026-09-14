@@ -32,7 +32,7 @@ export function publicConfig(config: Config) {
       },
     },
     limits: {
-      local: { context: 4096, output: 1024, input: 2816 },
+      local: { context: 4096, output: 3840, input: 2816 },
       gemini: { output: 4096, input: 24000 },
     },
   };

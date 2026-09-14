@@ -2,6 +2,7 @@
 
 | Issue | Stage | Status |
 |---|---|---|
+| [ISSUE-011](#issue-011-thinking-controls-and-a-fixed-local-output-cap) | Post-v1 | Fixed; intermittent Gemini interruption unconfirmed |
 | [ISSUE-010](#issue-010-a-queued-auto-scroll-overrode-the-readers-position) | 8 | Resolved |
 | [ISSUE-009](#issue-009-disabled-option-assertion-did-not-reflect-native-selection) | 8 | Resolved |
 | [ISSUE-008](#issue-008-browser-locator-confused-label-text-with-accessible-name) | 8 | Resolved |
@@ -96,3 +97,19 @@ Investigation traced the auto-scroll effect's captured `awayFromBottom` state. A
 The solution adds a `followLatest` ref updated synchronously by the scroll handler before setting display state. The effect reads the current ref rather than a value captured by an earlier render. New chat and Jump to latest explicitly restore following. The independent reviewer found no remaining defect in the scoped fix.
 
 Verification: the existing regression failed with the original implementation, then passed ten repeated browser runs, five desktop and five mobile. The final full check is recorded in the handoff. No timer delays or weakened position assertions were added. Lesson: state used to guard queued imperative effects may need a synchronous ref alongside the state used to render controls. Status: resolved.
+
+## ISSUE-011: Thinking controls and a fixed local output cap
+
+After v1, the user supplied screenshots showing a disabled thinking checkbox with Gemini and incomplete local answers when thinking was enabled. The original approved scope intentionally made the checkbox local-only and did not request Gemini thought summaries. The user now expects a useful control for the selected provider.
+
+Inspection found that both local thinking and direct answers were capped at 1,024 output tokens even when most of the 4,096-token context was unused. A live reproduction of `teach me about promises` returned `finish_reason: length`, exactly 1,024 completion tokens, 3,774 reasoning characters, and only 135 answer characters. The stream was reaching its configured cap, not crashing.
+
+The fix keeps the existing 2,816 estimated-input allowance and 256-token safety margin. Local output receives the remaining context after the conservative input estimate, with at least the original 1,024-token reserve. No Ollama model tuning is changed. Long responses can still reach a limit; they remain incomplete rather than being mislabeled completed.
+
+Gemini now has a separately named thought-summary checkbox. Its setting sends Google's documented `extra_body.google.thinking_config.include_thoughts` only when selected. Gemini's internal thinking remains model-controlled; the UI does not claim that unchecking summaries turns it off. Only separately identified fields enter the reasoning panel. Local and Gemini checkbox preferences are separate and reset on New chat.
+
+The user's Gemini screenshot also shows one stream ending without a finish reason and later requests completing. That is evidence of an interrupted live response, not enough evidence to identify an upstream cause. The app must keep that partial response failed; it must not infer success from answer text or automatically retry a cloud request.
+
+Verification: failing adapter tests reproduced the fixed 1,024 cap and missing Gemini summary option before implementation. `npm run check` passed lint, type checking, 45 deterministic tests and 20 desktop/mobile browser tests, plus the production build. Formatting and documentation links passed. The same live Local prompt completed with `finish_reason: stop`, 2,425 completion tokens, 4,776 reasoning characters and 4,583 answer characters in 87.8 seconds. This is one successful live comparison, not a guarantee that every long answer will fit. All seven original Ollama tuning values were rechecked unchanged. No Gemini generation was made by this fix verification.
+
+References: [Google compatibility and thinking](https://ai.google.dev/gemini-api/docs/openai), checked September 14, 2026. Status: thinking controls and fixed-cap limitation corrected and verified; the isolated Gemini stream termination remains unexplained from the screenshot alone.

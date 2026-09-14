@@ -35,6 +35,7 @@ export function App() {
   }, []);
   const [text, setText] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [geminiSummaries, setGeminiSummaries] = useState(false);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [now, setNow] = useState(Date.now());
   const [awayFromBottom, setAwayFromBottom] = useState(false);
@@ -94,7 +95,7 @@ export function App() {
         body: JSON.stringify({
           requestId: current.requestId,
           provider,
-          thinking: provider === 'local' && thinking,
+          thinking: provider === 'local' ? thinking : geminiSummaries,
           messages,
         }),
         signal: controller.signal,
@@ -135,6 +136,7 @@ export function App() {
     setAttempts([]);
     setProvider('local');
     setThinking(false);
+    setGeminiSummaries(false);
     setText('');
     followLatest.current = true;
     setAwayFromBottom(false);
@@ -180,13 +182,23 @@ export function App() {
         <label>
           <input
             type="checkbox"
-            checked={provider === 'local' && thinking}
-            disabled={busy || provider !== 'local'}
-            onChange={(event) => setThinking(event.target.checked)}
+            checked={provider === 'local' ? thinking : geminiSummaries}
+            disabled={busy}
+            aria-describedby="thinking-help"
+            onChange={(event) =>
+              provider === 'local'
+                ? setThinking(event.target.checked)
+                : setGeminiSummaries(event.target.checked)
+            }
           />{' '}
-          Local thinking
+          {provider === 'local' ? 'Local thinking' : 'Gemini thought summaries'}
         </label>
       </div>
+      <p id="thinking-help" className="thinking-help">
+        {provider === 'local'
+          ? 'Thinking and answers share the available context. Shorter chats leave more room for a complete reply.'
+          : 'Gemini thinks automatically. This option requests a thought summary when the model supplies one.'}
+      </p>
       {configError && (
         <p className="error" role="alert">
           {configError}
