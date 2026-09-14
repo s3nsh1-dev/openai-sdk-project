@@ -31,4 +31,4 @@ When present, also read `docs/handoff.md`, `architecture.md`, and the current st
 
 ## Commands
 
-Read `package.json` before running commands. Setup: `npm ci`. Development: `npm run dev`. Verification: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`. Production: `npm start`. Stage 8 adds the browser test configuration for `npm run test:browser` and the aggregate `npm run check`. Live provider checks remain separate and explicit.
+Read `package.json` before running commands. Setup: `npm ci`. Development: `npm run dev`. Verification: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`. Production: `npm start`. Install the matching browser with `npx playwright install chromium`. Browser checks: `npm run test:browser`, after building. Full verification: `npm run check`. Formatting: `npm run format` and `npm run format:check`. Live checks remain separate: `npm run smoke:local` uses Ollama; `npm run smoke:gemini` makes one explicit cloud request and must never be included in routine tests or CI. Gemini defaults to the user-selected `gemini-3.8-flash`.

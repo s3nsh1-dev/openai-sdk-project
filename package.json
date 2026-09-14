@@ -19,7 +19,9 @@
     "test:browser": "playwright test",
     "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:browser",
     "smoke:local": "tsx --env-file-if-exists=.env scripts/smoke.ts local",
-    "smoke:gemini": "tsx --env-file-if-exists=.env scripts/smoke.ts gemini"
+    "smoke:gemini": "tsx --env-file-if-exists=.env scripts/smoke.ts gemini",
+    "format": "prettier --write src tests scripts *.ts *.js *.json",
+    "format:check": "prettier --check src tests scripts *.ts *.js *.json"
   },
   "dependencies": {
     "eventsource-parser": "^4.1.0",
@@ -48,6 +50,7 @@
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
     "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
     "supertest": "^7.2.2",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",

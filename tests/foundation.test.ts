@@ -9,7 +9,9 @@ describe('foundation', () => {
     expect(result.body).toEqual({ status: 'ok' });
   });
   it('exposes availability but never the key or upstream URL', () => {
-    const serialized = JSON.stringify(publicConfig(loadConfig({ GEMINI_API_KEY: 'test-secret' })));
+    const serialized = JSON.stringify(
+      publicConfig(loadConfig({ GEMINI_API_KEY: 'test-secret' })),
+    );
     expect(serialized).not.toContain('test-secret');
     expect(serialized).not.toContain('http');
     expect(JSON.parse(serialized).providers.gemini.available).toBe(true);

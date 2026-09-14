@@ -1,6 +1,6 @@
 # A staged learning project for streaming AI chat
 
-Status: approved design, saved for implementation. Application development has not started.
+Status: v1 implemented through all eight stages. Local and deterministic verification completed; live Gemini verification remains explicit and pending. See docs/handoff.md for evidence and milestone hashes.
 
 This file includes the approved project plan and the later requirement to document development issues and solutions. It is the implementation source of truth for a new Codex session. Read [AGENTS.md](AGENTS.md) first.
 
@@ -279,6 +279,6 @@ At the time this plan was saved, only this plan and the bootstrap `AGENTS.md` ha
 - [x] Stage 5: Conversation and chat interface
 - [x] Stage 6: Cancellation and failure recovery
 - [x] Stage 7: Gemini and provider selection
-- [ ] Stage 8: Verification and handoff
+- [x] Stage 8: Verification and handoff
 
 Update this checklist and `docs/handoff.md` with actual evidence as implementation proceeds. A passed fixture test does not prove that a live provider works.
