@@ -7,3 +7,13 @@ coverage/
 playwright-report/
 test-results/
 .superpowers/
+
+# Local development notes and tooling
+/AGENTS.md
+/IMPLEMENTATION_PLAN.md
+/.agents/
+/.codex/
+/docs/*
+!/docs/decisions.md
+!/docs/protocol.md
+/scripts/diagnose-local-thinking.ts

@@ -1,12 +1,12 @@
-# Local chat lab
+# Local chat
 
 A local JavaScript tutor built with React, TypeScript, Express, and the OpenAI SDK. It supports streaming answers, optional local reasoning, multi-turn chat, Markdown, Stop, Retry, and explicit Gemini selection.
 
-Everyday development uses Ollama `qwen3.5:4b`. The app preserves existing model tuning. Gemini defaults to the user's selected `gemini-3.8-flash` and never runs as an automatic fallback.
+Local chat uses Ollama `qwen3.5:4b` by default and preserves existing model tuning. Gemini defaults to `gemini-3.8-flash` and never runs as an automatic fallback.
 
 ## Setup
 
-Use Node 22.12 or newer; Node 24 is used in CI and was used for development. Run commands from this project's root directory.
+Use Node 22.12 or newer; CI uses Node 24. Run commands from this project's root directory.
 
 ```sh
 npm ci
@@ -74,9 +74,9 @@ npm run build
 npm start
 ```
 
-There is no public deployment in v1. The application has no authentication or persistent storage.
+The application is intended for local use and has no authentication or persistent storage.
 
-## Troubleshooting and learning
+## Troubleshooting
 
 - A busy response means another tab is generating with that provider. Stop it or wait, then retry.
 - An input-budget error means the conservative estimate is too large. Shorten the message or start a new chat. History is not silently trimmed.
@@ -84,4 +84,8 @@ There is no public deployment in v1. The application has no authentication or pe
 - A missing model or provider connection error needs the local model/server or server configuration checked. Gemini failures never trigger Local, and Local failures never trigger Gemini.
 - A Playwright executable error usually needs `npx playwright install chromium` for the installed package version.
 
-Read [the learning path](docs/learning-path.md), [protocol](docs/protocol.md), [decisions](docs/decisions.md), and [issues journal](docs/issues-and-solutions.md). [Handoff](docs/handoff.md) records actual checks and remaining live-provider limitations. [The implementation plan](IMPLEMENTATION_PLAN.md) and [AGENTS.md](AGENTS.md) govern future stages and Git workflow.
+## Technical documentation
+
+- [Architecture](architecture.md): components, request handling, cancellation, and context limits.
+- [Streaming protocol](docs/protocol.md): request validation, SSE events, and error handling.
+- [Design decisions](docs/decisions.md): implementation choices and trade-offs.

@@ -6,7 +6,7 @@
 {"requestId":"example-1","provider":"local","thinking":false,"messages":[{"role":"user","content":"Explain const."}]}
 ```
 
-Messages must alternate user and assistant, begin and end with user, and contain nonempty text. Only completed exchanges belong in this array. The server prepends its tutor prompt. Bodies are limited to 128 KiB, 101 messages, and 24,000 characters per message, with a tighter local context budget added in Stage 5.
+Messages must alternate user and assistant, begin and end with user, and contain nonempty text. Only completed exchanges belong in this array. The server prepends its tutor prompt. Bodies are limited to 128 KiB, 101 messages, and 24,000 characters per message, with a tighter context budget for the local model.
 
 Successful HTTP responses use `text/event-stream`. Each frame is `data: <JSON>\n\n`; comments such as `: heartbeat\n\n` carry no model progress. All five event types require requestId. Runtime schemas and inferred types live together in `src/shared/protocol.ts`.
 

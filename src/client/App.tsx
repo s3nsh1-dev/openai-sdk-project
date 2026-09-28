@@ -146,7 +146,7 @@ export function App() {
     <main className="app">
       <header>
         <div>
-          <p className="eyebrow">LOCAL CHAT LAB</p>
+          <p className="eyebrow">LOCAL CHAT</p>
           <h1>Ask. Try. Understand.</h1>
         </div>
         <button className="quiet" type="button" onClick={newChat}>
