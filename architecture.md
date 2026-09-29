@@ -7,7 +7,7 @@ This is one local Express process and one browser tab. Conversation state lives 
 | Boundary | Code | Responsibility |
 |---|---|---|
 | Browser application | [App.tsx](src/client/App.tsx) | Provider selection, composer, request identity, Stop, Retry, scroll position |
-| Display state and history | [state.ts](src/client/state.ts) | Explicit lifecycle states; only complete exchanges enter API history |
+| Display state and history | [state.ts](src/client/state.ts) | Attempt provider/model and lifecycle states; only complete exchanges enter API history |
 | Browser transport | [stream.ts](src/client/stream.ts) | Decode UTF-8, parse SSE, validate events, correlate request IDs, require a terminal result |
 | Rendering | [Markdown.tsx](src/client/Markdown.tsx), [Turn.tsx](src/client/Turn.tsx) | Safe Markdown, plain reasoning, code Copy, response status |
 | Shared contracts | [protocol.ts](src/shared/protocol.ts) | Zod request, event, and public configuration schemas with inferred TypeScript types |
@@ -87,10 +87,20 @@ stateDiagram-v2
     answering --> failed: Error or unexpected end
 ```
 
-The actual status label is `receiving reasoning`. All terminal states reject later events. Retry creates a fresh attempt ID; New chat aborts active work, clears memory, and resets provider to Local. A blocked provider result is displayed as incomplete with a specific error message. Only `completed` exchanges become future context.
+The actual status label is `receiving reasoning`. All terminal states reject later events. Retry creates a fresh attempt ID and uses the currently selected provider and its thinking preference. It replaces the latest unsuccessful attempt without adding another user turn. New chat aborts active work, clears memory and the draft, and resets the provider to Local and both thinking preferences to false. A blocked provider result is displayed as incomplete with a specific error message. Only `completed` exchanges become future context.
+
+## Switching providers between turns
+
+The selector describes the next request. It is disabled during waiting, reasoning, and answering; the change handler also checks the active-request ref and provider availability. Switching preserves the transcript, draft, and scroll position and makes no generation request. Local thinking and Gemini summaries retain separate preferences.
+
+Each attempt snapshots its selected provider and configured model before fetching. The matching `start` event supplies the server-reported model. Response labels use that attempt metadata, so changing the selector cannot relabel past answers or failures before SSE begins. Request IDs and terminal states still reject late events after Stop or Retry.
+
+The server has no conversation-level provider lock. Every request contains the shared completed user/assistant exchanges and its current question, independent of which provider wrote previous answers. Neither display-only reasoning nor unsuccessful answers are transmitted as history. Gemini selection shows a cloud-history notice; only Send or explicit Retry transmits the text. Credentials, models, and endpoints remain server-owned.
 
 ## Limits and deployment
 
 Local context is 4,096 tokens, with at least 1,024 reserved for output and 256 as a safety margin. Each local request uses the remaining context after estimated input as its output limit, so short conversations have more room for reasoning and the answer. Input estimation counts UTF-8 bytes plus 16 per message, including the system prompt. This conservative application estimate is not an exact Qwen tokenizer. Gemini has a separate 24,000 estimated-input limit and 4,096 output-token cap. Neither history nor generated reasoning is silently summarized.
+
+After switching from Gemini to Local, completed history may exceed Local's smaller input budget. The server returns HTTP 413 before upstream generation, and the client keeps the conversation visible. Switching back to Gemini and explicitly retrying reuses the question and completed history. There is no automatic provider fallback or trimming.
 
 Development uses Vite's `/api` proxy. Production builds browser assets under `dist/client` and bundles the server under `dist/server`; Express serves both from the project root. Both development servers and production bind to loopback. The active-slot and rolling rate guards belong to this one app instance. Public hosting would need authentication, origin policy, durable quotas, and a separate deployment design.

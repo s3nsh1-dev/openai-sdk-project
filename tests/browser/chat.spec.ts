@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import type { ChatRequest } from '../../src/shared/protocol';
 test.beforeEach(async ({ page }) => {
   await page.route('**/*', (route) =>
     new URL(route.request().url()).origin === 'http://127.0.0.1:4173'
@@ -41,33 +42,164 @@ test('streams safe Markdown, follows up, copies code, and clears history', async
   await expect(page.getByRole('region', { name: 'Chat turn' })).toHaveCount(0);
   await expect(page.getByRole('textbox')).toBeFocused();
 });
-test('locks explicit Gemini selection and resets to Local on new chat', async ({
+test('switches between providers with shared history and resets to Local on new chat', async ({
   page,
-}) => {
-  await page
-    .getByRole('combobox', { name: 'Provider', exact: true })
-    .selectOption('gemini');
-  await expect(
-    page.getByText(/Messages in this conversation will be sent to Google/),
-  ).toBeVisible();
-  await page.getByRole('textbox').fill('Cloud fixture');
+}, info) => {
+  const sent: ChatRequest[] = [];
+  page.on('request', (request) => {
+    if (request.url().endsWith('/api/chat')) sent.push(request.postDataJSON());
+  });
+  const selector = page.getByRole('combobox', {
+    name: 'Provider',
+    exact: true,
+  });
+  await page.getByLabel('Local thinking').check();
+  await page.getByRole('textbox').fill('First local question');
   await page.getByRole('button', { name: 'Send message' }).click();
   await expect(page.getByRole('status')).toHaveText('completed');
+  await expect(selector).toBeEnabled();
+  await page.getByRole('textbox').fill('Cloud follow-up');
+  await selector.selectOption('gemini');
+  await expect(page.getByRole('textbox')).toHaveValue('Cloud follow-up');
+  expect(sent).toHaveLength(1);
   await expect(
-    page.getByRole('combobox', { name: 'Provider', exact: true }),
-  ).toBeDisabled();
+    page.getByText(/completed conversation history to Google/),
+  ).toBeVisible();
+  await expect(page.getByLabel('Gemini thought summaries')).not.toBeChecked();
+  await page.getByLabel('Gemini thought summaries').check();
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByRole('status').last()).toHaveText('completed');
+  await selector.selectOption('local');
+  await expect(page.getByLabel('Local thinking')).toBeChecked();
+  await page.getByRole('textbox').fill('Back to local');
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByRole('status').last()).toHaveText('completed');
+  const firstAnswer =
+    'A const binding cannot be reassigned.\n\n```js\nconst n = 4;\n```\n\n<script>window.hacked=true</script>\n\n![tracking](https://example.com/track.png)';
+  expect(
+    sent.map(({ provider, thinking, messages }) => ({
+      provider,
+      thinking,
+      messages,
+    })),
+  ).toEqual([
+    {
+      provider: 'local',
+      thinking: true,
+      messages: [{ role: 'user', content: 'First local question' }],
+    },
+    {
+      provider: 'gemini',
+      thinking: true,
+      messages: [
+        { role: 'user', content: 'First local question' },
+        { role: 'assistant', content: firstAnswer },
+        { role: 'user', content: 'Cloud follow-up' },
+      ],
+    },
+    {
+      provider: 'local',
+      thinking: true,
+      messages: [
+        { role: 'user', content: 'First local question' },
+        { role: 'assistant', content: firstAnswer },
+        { role: 'user', content: 'Cloud follow-up' },
+        { role: 'assistant', content: `Follow-up received. ${firstAnswer}` },
+        { role: 'user', content: 'Back to local' },
+      ],
+    },
+  ]);
+  const turns = page.getByRole('region', { name: 'Chat turn' });
+  await expect(turns.nth(0).getByText('Local · qwen3.5:4b')).toBeVisible();
+  await expect(
+    turns.nth(1).getByText('Gemini · gemini-3.8-flash'),
+  ).toBeVisible();
+  await expect(turns.nth(2).getByText('Local · qwen3.5:4b')).toBeVisible();
+  await page.screenshot({
+    path: `test-results/${info.project.name}-mixed-providers.png`,
+    fullPage: true,
+  });
+  await selector.selectOption('gemini');
+  await expect(page.getByLabel('Gemini thought summaries')).toBeChecked();
+  expect(sent).toHaveLength(3);
   await page.getByRole('button', { name: 'New chat' }).click();
+  await expect(selector).toHaveValue('local');
+  await expect(turns).toHaveCount(0);
+  await expect(page.getByLabel('Local thinking')).not.toBeChecked();
+  await selector.selectOption('gemini');
+  await expect(page.getByLabel('Gemini thought summaries')).not.toBeChecked();
+});
+
+test('retries an unsuccessful Local question with explicitly selected Gemini', async ({
+  page,
+}, info) => {
+  const sent: ChatRequest[] = [];
+  page.on('request', (request) => {
+    if (request.url().endsWith('/api/chat')) sent.push(request.postDataJSON());
+  });
+  const question = `[retry] switch-${info.project.name}`;
+  const selector = page.getByRole('combobox', {
+    name: 'Provider',
+    exact: true,
+  });
+  await page.getByRole('textbox').fill(question);
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByRole('status')).toHaveText('failed');
+  await expect(selector).toBeEnabled();
+  await selector.selectOption('gemini');
+  await page.getByRole('button', { name: 'Retry last turn' }).click();
+  await expect(page.getByRole('status')).toHaveText('completed');
+  expect(sent[1]).toMatchObject({
+    provider: 'gemini',
+    thinking: false,
+    messages: [{ role: 'user', content: question }],
+  });
+  expect(sent[1].requestId).not.toBe(sent[0].requestId);
+  await expect(page.getByRole('region', { name: 'Chat turn' })).toHaveCount(1);
+  await expect(page.getByText('An unfinished attempt.')).toHaveCount(0);
+  await expect(page.getByText('Gemini · gemini-3.8-flash')).toBeVisible();
+});
+
+test('preserves large Gemini history after a Local rejection and explicitly retries with Gemini', async ({
+  page,
+}) => {
+  const selector = page.getByRole('combobox', {
+    name: 'Provider',
+    exact: true,
+  });
+  await selector.selectOption('gemini');
+  await page.getByRole('textbox').fill('[large-history]');
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByRole('status')).toHaveText('completed');
+  await selector.selectOption('local');
+  await page.getByRole('textbox').fill('Use the reference');
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByRole('status').last()).toHaveText('failed');
+  await expect(page.getByRole('alert')).toContainText('input budget');
+  await expect(page.locator('.answer').first()).toHaveText('x'.repeat(3000));
+  await expect(page.getByRole('region', { name: 'Chat turn' })).toHaveCount(2);
+  await expect(selector).toBeEnabled();
+  await selector.selectOption('gemini');
+  await page.getByRole('button', { name: 'Retry last turn' }).click();
+  await expect(page.getByRole('status').last()).toHaveText('completed');
+  await expect(page.getByRole('region', { name: 'Chat turn' })).toHaveCount(2);
   await expect(
-    page.getByRole('combobox', { name: 'Provider', exact: true }),
-  ).toHaveValue('local');
+    page.getByText('Use the reference', { exact: true }),
+  ).toHaveCount(1);
 });
 test('stops before output and during output, then retries without duplication', async ({
   page,
 }, info) => {
   await page.getByRole('textbox').fill('[waiting]');
   await page.getByRole('textbox').press('Enter');
+  await expect(
+    page.getByRole('combobox', { name: 'Provider', exact: true }),
+  ).toBeDisabled();
   await page.getByRole('button', { name: 'Stop response' }).click();
   await expect(page.getByRole('status')).toHaveText('stopped');
+  await expect(
+    page.getByRole('combobox', { name: 'Provider', exact: true }),
+  ).toBeEnabled();
   await page.getByRole('button', { name: 'New chat' }).click();
   await page.getByRole('textbox').fill(`[slow] ${info.project.name}`);
   await page.getByRole('textbox').press('Enter');
@@ -142,6 +274,12 @@ test('respects readers scrolling upward and offers Jump to latest', async ({
     page.getByRole('button', { name: 'Jump to latest' }),
   ).toBeVisible();
   await expect(page.getByRole('status')).toHaveText('completed');
+  expect(await log.evaluate((element) => element.scrollTop)).toBe(0);
+  await page.getByRole('textbox').fill('Unsent draft');
+  await page
+    .getByRole('combobox', { name: 'Provider', exact: true })
+    .selectOption('gemini');
+  await expect(page.getByRole('textbox')).toHaveValue('Unsent draft');
   expect(await log.evaluate((element) => element.scrollTop)).toBe(0);
   await page.getByRole('button', { name: 'Jump to latest' }).click();
   await expect(

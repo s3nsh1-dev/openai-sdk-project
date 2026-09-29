@@ -51,17 +51,19 @@ const fake = await listen(async (req, res) => {
     res.end('data: [DONE]\n\n');
     return;
   }
-  const answer = last.includes('[long]')
-    ? Array.from(
-        { length: 50 },
-        (_, i) =>
-          `Paragraph ${i + 1}. A const binding keeps the same reference.\n\n`,
-      )
-    : [
-        `${input.messages.length === 4 ? 'Follow-up received. ' : ''}A const binding cannot be reassigned.\n\n`,
-        '```js\nconst n = 4;\n```\n\n',
-        '<script>window.hacked=true</script>\n\n![tracking](https://example.com/track.png)',
-      ];
+  const answer = last.includes('[large-history]')
+    ? ['x'.repeat(3000)]
+    : last.includes('[long]')
+      ? Array.from(
+          { length: 50 },
+          (_, i) =>
+            `Paragraph ${i + 1}. A const binding keeps the same reference.\n\n`,
+        )
+      : [
+          `${input.messages.length === 4 ? 'Follow-up received. ' : ''}A const binding cannot be reassigned.\n\n`,
+          '```js\nconst n = 4;\n```\n\n',
+          '<script>window.hacked=true</script>\n\n![tracking](https://example.com/track.png)',
+        ];
   for (const text of answer) {
     if (res.destroyed) return;
     send(chunk({ content: text }));

@@ -15,6 +15,9 @@ export function Turn({ attempt, now }: { attempt: Attempt; now: number }) {
       </div>
       <div className="assistant-message">
         <span className="speaker">TUTOR</span>
+        <span className="response-provider">
+          {`${attempt.provider === 'local' ? 'Local' : 'Gemini'} · ${attempt.model}`}
+        </span>
         <p className={`response-status ${attempt.status}`} role="status">
           {attempt.status}
           {busy
