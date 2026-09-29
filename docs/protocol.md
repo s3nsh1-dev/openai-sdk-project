@@ -61,7 +61,7 @@ This becomes `usage: {"promptTokens":60,"completionTokens":42,"totalTokens":102}
 
 ## Errors and terminal handling
 
-Before streaming, invalid input returns 400, body/context overflow 413, a busy provider 409, application rate limiting 429, and missing Gemini configuration 503. The body is an object containing an actionable `error` string. These checks make no generation request.
+Before streaming, invalid input returns 400, body/context overflow 413, a busy provider 409, request or daily allowance limits 429, and missing Gemini configuration or unavailable security storage 503. Access checks run before body parsing: protected routes require owner credentials (401 plus a Basic challenge), disallowed browser origins/Fetch Metadata return 403, and an unexpected or malformed Host returns 421. Incorrect credentials beyond the failure threshold return 429; initial no-credential challenges and correct credentials remain available. The body is an object containing an actionable `error` string. These checks make no generation request. See [security configuration](../SECURITY.md).
 
 After streaming begins, a synthetic timeout frame looks like:
 
@@ -85,6 +85,6 @@ data: {"type":"error","requestId":"example-1","code":"idle_timeout","message":"T
 
 The browser validates application event shapes, ignores IDs that do not match its current request, and closes its reader after one matching terminal event. EOF without one is a connection failure. The reducer separately rejects updates after completion, failure, incomplete output, or Stop. This second check protects state even if another caller misroutes an event.
 
-`GET /api/health` returns `{"status":"ok"}`. `GET /api/config` returns public provider name/model/availability and the numeric limits. Its schema also lives in `src/shared/protocol.ts`. Neither endpoint tests provider generation or returns credentials.
+`GET /api/health` returns `{"status":"ok"}`. `GET /api/config` returns public provider name/model/availability and the numeric limits. Its schema also lives in `src/shared/protocol.ts`. Both require owner authentication in protected mode. Neither endpoint tests provider generation or returns credentials.
 
 Local `limits.output` in public configuration is an upper ceiling of 3,840 before subtracting estimated input. Each request uses `4096 - 256 - estimateInput(messages)` output tokens, while the unchanged 2,816 input guard guarantees at least 1,024 remain. This shared output budget includes reasoning and answer tokens.

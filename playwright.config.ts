@@ -6,6 +6,10 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    httpCredentials: {
+      username: 'browser-owner',
+      password: 'synthetic-browser-password-for-tests-only',
+    },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

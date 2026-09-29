@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { estimateInput, inputBudget } from './budget';
+import { estimateInput, inputBudget, outputBudget } from './budget';
 import type { Config } from './config';
 import {
   chatRequestSchema,
@@ -10,6 +10,7 @@ import { normalizeChunk, StreamFailure } from './normalize';
 import { createProviders, type Providers } from './provider';
 import { safeError } from './errors';
 import { writeFrame } from './sse';
+import { createSecurityState, type SecurityState } from './security-state';
 export type RequestLog = {
   requestId: string;
   provider: string;
@@ -22,9 +23,8 @@ export function createChatHandler(
   providers: Providers = createProviders(config),
   log: (entry: RequestLog) => void = (entry) =>
     console.info(JSON.stringify(entry)),
+  securityState: SecurityState = createSecurityState(config),
 ) {
-  const active = new Set<string>();
-  let recent: number[] = [];
   return async function chat(req: Request, res: Response) {
     const parsed = chatRequestSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -49,24 +49,19 @@ export function createChatHandler(
       });
       return;
     }
-    if (active.has(input.provider)) {
-      res.status(409).json({
-        error:
-          'This provider is busy with another request. Stop it or wait, then retry.',
-      });
-      return;
-    }
     const started = Date.now();
-    recent = recent.filter((time) => started - time < 60000);
-    if (recent.length >= config.RATE_LIMIT) {
-      res.setHeader('Retry-After', '60');
-      res.status(429).json({
-        error: 'Application request limit reached. Wait one minute and retry.',
-      });
+    const reservation = securityState.acquire(
+      res.locals.principal ?? 'local',
+      input.provider,
+      estimateInput(input.messages) +
+        outputBudget(input.provider, input.messages),
+    );
+    if ('status' in reservation) {
+      if (reservation.retryAfter)
+        res.setHeader('Retry-After', String(reservation.retryAfter));
+      res.status(reservation.status).json({ error: reservation.error });
       return;
     }
-    recent.push(started);
-    active.add(input.provider);
     const controller = new AbortController();
     let deadline: StreamFailure | undefined;
     let terminal = false;
@@ -193,7 +188,14 @@ export function createChatHandler(
       clearInterval(heartbeat);
       controller.abort();
       res.off('close', disconnected);
-      active.delete(input.provider);
+      try {
+        reservation.release();
+      } catch {
+        // Storage failure must not prevent response/timer cleanup or disclose filesystem details.
+        console.error(
+          'Could not release the generation slot in security storage.',
+        );
+      }
       res.end();
       log({
         requestId: input.requestId,

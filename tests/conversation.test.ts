@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import request from 'supertest';
 import { contextMessages, newAttempt } from '../src/client/state';
 import { createApp } from '../src/server/app';
-import { loadConfig } from '../src/server/config';
+import { loadConfig } from './helpers/config';
 it('sends only complete exchanges and excludes reasoning and failed attempts', () => {
   const complete = {
     ...newAttempt('one', 'First'),

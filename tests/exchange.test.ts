@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/server/app';
-import { loadConfig } from '../src/server/config';
+import { loadConfig } from './helpers/config';
 import { close } from './helpers/servers';
 import { fakeProvider, chunk } from './helpers/provider';
 it('sends a server-owned prompt through the SDK and streams the answer', async () => {

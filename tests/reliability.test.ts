@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/server/app';
-import { loadConfig } from '../src/server/config';
+import { loadConfig } from './helpers/config';
 import { fakeProvider, chunk } from './helpers/provider';
 import { close, listen } from './helpers/servers';
 const input = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { loadConfig, publicConfig } from '../src/server/config';
+import { loadConfig, publicConfig } from './helpers/config';
 import { createApp } from '../src/server/app';
 describe('foundation', () => {
   it('reports app health without contacting a provider', async () => {

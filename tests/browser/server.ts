@@ -75,19 +75,29 @@ const fake = await listen(async (req, res) => {
   res.end('data: [DONE]\n\n');
 });
 const config = loadConfig({
+  NODE_ENV: 'test',
+  ACCESS_MODE: 'protected',
+  AUTH_USERNAME: 'browser-owner',
+  AUTH_PASSWORD: 'synthetic-browser-password-for-tests-only',
+  PUBLIC_ORIGIN: 'http://127.0.0.1:4173',
+  SECURITY_STATE_PATH: ':memory:',
   OLLAMA_BASE_URL: `${fake.url}/v1`,
   GEMINI_API_KEY: 'browser-fixture-key',
   RATE_LIMIT: '1000',
+  HTTP_RATE_LIMIT: '10000',
+  DAILY_TOKEN_LIMIT: '1000000',
 });
 const providers = createProviders(config, async (_url, init) =>
   fetch(`${fake.url}/v1/chat/completions`, init),
 );
-const server = createApp(config, { providers }).listen(4173, '127.0.0.1', () =>
+const app = createApp(config, { providers });
+const server = app.listen(4173, '127.0.0.1', () =>
   console.info('Browser fixture app on 4173'),
 );
 async function shutdown() {
   await close(server);
   await close(fake.server);
+  app.locals.closeSecurityState();
   process.exit(0);
 }
 process.on('SIGTERM', () => void shutdown());

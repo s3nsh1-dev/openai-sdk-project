@@ -1,7 +1,8 @@
 import { expect, it, vi } from 'vitest';
+import { gzipSync } from 'node:zlib';
 import request from 'supertest';
 import { createApp } from '../src/server/app';
-import { loadConfig } from '../src/server/config';
+import { loadConfig } from './helpers/config';
 import { fakeProvider, chunk } from './helpers/provider';
 import { close, listen } from './helpers/servers';
 it('rejects oversized JSON, unknown settings, and malformed JSON before streaming', async () => {
@@ -33,6 +34,24 @@ it('rejects oversized JSON, unknown settings, and malformed JSON before streamin
         })
     ).status,
   ).toBe(400);
+});
+it('enforces the JSON size limit after gzip decompression', async () => {
+  const app = createApp(loadConfig({}));
+  try {
+    const compressed = gzipSync(
+      Buffer.from(JSON.stringify({ large: 'x'.repeat(180000) })),
+    );
+    const response = await request(app)
+      .post('/api/chat')
+      .set('Content-Type', 'application/json')
+      .set('Content-Encoding', 'gzip')
+      .serialize((value) => value)
+      .send(compressed);
+    expect(response.status).toBe(413);
+    expect(response.text).not.toMatch(/stack|node_modules/);
+  } finally {
+    app.locals.closeSecurityState();
+  }
 });
 it('does not put prompts, generated text, or keys in request logs', async () => {
   const fake = await fakeProvider([

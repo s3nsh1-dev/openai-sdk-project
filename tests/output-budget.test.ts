@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { createProviders } from '../src/server/provider';
-import { loadConfig } from '../src/server/config';
+import { loadConfig } from './helpers/config';
 import { estimateInput } from '../src/server/budget';
 import { fakeProvider, chunk } from './helpers/provider';
 import { close } from './helpers/servers';

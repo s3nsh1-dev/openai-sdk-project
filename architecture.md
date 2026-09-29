@@ -1,6 +1,6 @@
 # Architecture
 
-This is one local Express process and one browser tab. Conversation state lives in React memory and is resubmitted explicitly on each turn. There is no database, account, retrieval, tool execution, or automatic provider fallback.
+Express serves a personal chat application. Conversation state lives in React memory and is resubmitted explicitly on each turn. SQLite stores security counters and generation leases only. Protected mode authenticates one owner; multiple accounts, saved conversations, retrieval, tool execution, and automatic provider fallback remain outside this version.
 
 ## Component map and trust boundaries
 
@@ -12,6 +12,8 @@ This is one local Express process and one browser tab. Conversation state lives 
 | Rendering | [Markdown.tsx](src/client/Markdown.tsx), [Turn.tsx](src/client/Turn.tsx) | Safe Markdown, plain reasoning, code Copy, response status |
 | Shared contracts | [protocol.ts](src/shared/protocol.ts) | Zod request, event, and public configuration schemas with inferred TypeScript types |
 | HTTP entry | [app.ts](src/server/app.ts), [index.ts](src/server/index.ts) | Body-size limit, API routes, static files, loopback binding |
+| Access policy | [access.ts](src/server/access.ts) | Host/Origin/Fetch Metadata validation, owner authentication, browser security headers, ingress checks before parsing |
+| Security state | [security-state.ts](src/server/security-state.ts) | SQLite rate counters, daily provider allowances, shared generation leases and shutdown cleanup |
 | Request lifecycle | [chat.ts](src/server/chat.ts), [sse.ts](src/server/sse.ts) | Validation, deadlines, active slots, rate guard, heartbeats, backpressure, cleanup |
 | Provider boundary | [provider.ts](src/server/provider.ts), [normalize.ts](src/server/normalize.ts) | Server-only SDK clients and normalization of compatible provider chunks |
 | Server policy | [config.ts](src/server/config.ts), [budget.ts](src/server/budget.ts), [prompt.ts](src/server/prompt.ts), [errors.ts](src/server/errors.ts) | Keys, models, budgets, tutor instruction, and safe errors |
@@ -93,4 +95,8 @@ The actual status label is `receiving reasoning`. All terminal states reject lat
 
 Local context is 4,096 tokens, with at least 1,024 reserved for output and 256 as a safety margin. Each local request uses the remaining context after estimated input as its output limit, so short conversations have more room for reasoning and the answer. Input estimation counts UTF-8 bytes plus 16 per message, including the system prompt. This conservative application estimate is not an exact Qwen tokenizer. Gemini has a separate 24,000 estimated-input limit and 4,096 output-token cap. Neither history nor generated reasoning is silently summarized.
 
-Development uses Vite's `/api` proxy. Production builds browser assets under `dist/client` and bundles the server under `dist/server`; Express serves both from the project root. Both development servers and production bind to loopback. The active-slot and rolling rate guards belong to this one app instance. Public hosting would need authentication, origin policy, durable quotas, and a separate deployment design.
+Development uses Vite's `/api` proxy. Production builds browser assets under `dist/client` and bundles the server under `dist/server`; Express serves both from the project root. Both development servers and production bind to loopback. Local access requires a loopback Host and connection. Protected access checks an exact configured origin/host and server-side owner credentials before parsing any JSON or serving assets. Foreign browser origins and same-site subresource requests without an allowed Origin are rejected before quota accounting. Forwarded headers never grant access or identify a caller.
+
+SQLite under ignored `.local/` stores rate timestamps, daily token reservations, and active generation leases. No prompts, model output, credentials, or saved conversations enter it. Reservations happen atomically before an upstream request and survive restarts. Processes using the same local database share provider slots and budgets. Lease expiry recovers from a crashed process; a lease identifier prevents an older cleanup from deleting a newer generation. Clean shutdown defers database closure until owned leases have been released.
+
+`npm start` requires protected access, HTTPS public-origin configuration, and persistent security state. The production HTTP server remains on loopback behind the TLS proxy and has bounded connection/request timeouts and connection counts. The built page uses a restrictive CSP without inline/eval script exceptions and framing is denied. This is a personal owner gate, not a multi-user account system. Firewall, TLS proxy, operating-system/IAM privileges, provider spending controls, and multi-host quota design require deployment work described in [SECURITY.md](SECURITY.md).

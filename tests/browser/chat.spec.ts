@@ -225,3 +225,53 @@ test('offers Gemini thought summaries and sends the explicit preference', async 
     page.getByText('A Gemini thought summary supplied separately.'),
   ).toBeVisible();
 });
+
+test('blocks requests without owner credentials while the authenticated UI works', async ({
+  playwright,
+  page,
+}) => {
+  const unauthenticated = await playwright.request.newContext({
+    baseURL: 'http://127.0.0.1:4173',
+    httpCredentials: undefined,
+  });
+  try {
+    for (const url of ['/', '/api/config']) {
+      const response = await unauthenticated.get(url);
+      expect(response.status()).toBe(401);
+    }
+    const generation = await unauthenticated.post('/api/chat', {
+      data: {
+        requestId: 'unauthenticated-browser',
+        provider: 'gemini',
+        messages: [{ role: 'user', content: 'Hi' }],
+      },
+    });
+    expect(generation.status()).toBe(401);
+    await page.getByRole('textbox').fill('Authenticated browser check');
+    await page.getByRole('textbox').press('Enter');
+    await expect(page.getByRole('status')).toHaveText('completed');
+  } finally {
+    await unauthenticated.dispose();
+  }
+});
+
+test('serves the built page with a restrictive CSP and no inline-script exception', async ({
+  page,
+}) => {
+  const violations: string[] = [];
+  page.on('console', (message) => {
+    if (/content security policy|violates.*directive/i.test(message.text()))
+      violations.push(message.text());
+  });
+  const response = await page.reload();
+  expect(response!.headers()['content-security-policy']).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(response!.headers()['content-security-policy']).not.toMatch(
+    /unsafe-inline|unsafe-eval/,
+  );
+  await page.getByRole('textbox').fill('CSP streaming check');
+  await page.getByRole('textbox').press('Enter');
+  await expect(page.getByRole('status')).toHaveText('completed');
+  expect(violations).toEqual([]);
+});
