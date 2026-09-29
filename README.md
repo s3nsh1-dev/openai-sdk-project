@@ -18,7 +18,11 @@ If `.env` already exists, edit it instead of copying over it. Keep Ollama runnin
 
 Open http://127.0.0.1:5173. Vite proxies `/api` to Express on port 3001. Both bind to loopback. If you change `PORT`, also update the proxy target in `vite.config.ts`.
 
-Type a question and press Enter. Shift+Enter inserts a newline. Local thinking is off initially. Gemini instead offers a thought-summary checkbox; Gemini thinks internally even when summaries are unchecked. Provider selection locks after the first turn; New chat clears the conversation and resets Local. Refreshing also clears history. Only completed exchanges become future context; failed, incomplete, and stopped attempts stay visible until replaced by Retry or cleared.
+Type a question and press Enter. Shift+Enter inserts a newline. Local thinking is off initially. Gemini instead offers a thought-summary checkbox; Gemini thinks internally even when summaries are unchecked. Each provider remembers its own checkbox preference until New chat.
+
+Switch providers between turns using the Provider selector. During generation, use Stop first. Selection preserves the conversation and any unsent draft, and makes no generation request. Send and Retry use the selected provider; Retry replaces the latest unsuccessful attempt without duplicating its question. Each response shows its provider and model.
+
+Both providers receive the same completed conversation history plus the current question. Sending or retrying with Gemini sends that text to Google, including earlier Local exchanges. Reasoning and failed, incomplete, or stopped answers are excluded from future context. Unsuccessful attempts stay visible until replaced by Retry or cleared. New chat clears the conversation, resets Local and both checkbox preferences, and clears the draft. Refreshing also clears history.
 
 ## Configuration
 
@@ -92,7 +96,7 @@ Conversation history remains in browser memory. Security counters alone persist 
 ## Troubleshooting
 
 - A busy response means another tab is generating with that provider. Stop it or wait, then retry.
-- An input-budget error means the conservative estimate is too large. Shorten the message or start a new chat. History is not silently trimmed.
+- An input-budget error means the conservative estimate is too large for the selected provider. Local has a smaller budget than Gemini, so a long Gemini conversation may not fit after switching to Local. The transcript remains visible; select Gemini and explicitly Retry, shorten the message, or start a new chat. History is not silently trimmed.
 - An incomplete reasoning-only response can mean the output budget was spent before an answer. Disable Local thinking or ask a shorter question.
 - A missing model or provider connection error needs the local model/server or server configuration checked. Gemini failures never trigger Local, and Local failures never trigger Gemini.
 - A Playwright executable error usually needs `npx playwright install chromium` for the installed package version.

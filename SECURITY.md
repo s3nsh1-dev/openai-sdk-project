@@ -73,3 +73,9 @@ No live instance, proxy, cloud firewall, or IAM policy was configured by this ch
 `npm run check` runs lint, types, deterministic fixtures, the production build, and authenticated desktop/mobile browser workflows. `npm run format:check` checks source formatting. Security regressions cover unauthorized/malformed authentication, Host/Origin and same-site request rejection, pre-parser limits, safe storage failures, persistent/cross-process quotas, UTC resets, separate callers/providers, lease ownership/expiry, and shutdown cleanup. Tests use synthetic credentials and fake providers. No routine test consumes live Gemini or Ollama generation.
 
 Run `npm audit` for current known dependency advisories. A clean advisory scan and passing tests establish the checks performed; they do not certify future code or infrastructure changes. Reassess access control and quotas when adding accounts, storage, additional instances, tools, retrieval, or code execution.
+
+## Switching providers between turns
+
+Selecting Local or Gemini changes only the next explicit Send or Retry. Gemini receives completed user/assistant history when selected; display-only reasoning and unsuccessful output are excluded. The browser shows this cloud-history notice before sending. Selection itself makes no generation request.
+
+Every provider request passes the same authentication, Host/Origin checks, input validation, and persistent security accounting. The owner generation rate limit spans both providers and survives restarts. Daily budgets and active slots remain separate per provider. Switching does not bypass these checks, refund earlier reservations, change endpoints or credentials, or trigger automatic fallback. Local rejects oversized completed Gemini history before contacting Ollama.

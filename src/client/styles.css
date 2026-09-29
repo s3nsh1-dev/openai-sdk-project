@@ -162,6 +162,12 @@ h2 {
   color: #506d59;
   text-transform: capitalize;
 }
+.response-provider {
+  margin-left: 12px;
+  font-size: 12px;
+  color: #506d59;
+  overflow-wrap: anywhere;
+}
 .answer {
   color: #253a30;
   overflow-wrap: anywhere;

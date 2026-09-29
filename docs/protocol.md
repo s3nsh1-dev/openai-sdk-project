@@ -41,6 +41,14 @@ A usage-only chunk can have `choices: []`. A finish reason of `length` maps to i
 
 The estimated local input budget is 2,816, counting UTF-8 bytes plus 16 per message and the server prompt. Gemini uses a separate 24,000 estimated-input budget. HTTP 413 reports body or context overflow, with no silent trimming. Reasoning text never belongs in the message array.
 
+## Provider switching and shared history
+
+`provider` selects the adapter for this request, not for the lifetime of the conversation. The browser allows changes between turns, including after Stop, incomplete output, or failure. Selection itself makes no generation request. Send and explicit Retry snapshot the current provider and its separate thinking preference. Retry uses a fresh request ID, replaces the latest unsuccessful attempt, and resends its question once.
+
+Requests may include completed exchanges written by either provider. Their wire representation remains ordinary user/assistant messages; provider/model labels live only in client display state. Display-only reasoning and unsuccessful answers are excluded from history. Gemini selection displays a notice that sending or retrying transfers the current question and completed history to Google.
+
+The browser records the selected provider and configured model before fetching, then reads the server-reported model from the matching `start` event. This labels both streamed responses and errors before streaming, without adding fields to the request or SSE schemas. Every request still uses the selected provider's input guard. Long Gemini history can therefore produce a Local HTTP 413 before any upstream generation; the transcript is preserved and another provider can be explicitly selected for Retry.
+
 ## Reasoning and usage examples
 
 Both identified fields can be supplied together:

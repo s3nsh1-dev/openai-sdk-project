@@ -75,7 +75,11 @@ export function App() {
     const current = newAttempt(
       crypto.randomUUID(),
       retry ? latest!.user : text.trim(),
+      provider,
+      config.providers[provider].model,
     );
+    // Selection describes the next request; each attempt keeps its own settings.
+    const currentThinking = provider === 'local' ? thinking : geminiSummaries;
     const history = retry ? attempts.slice(0, -1) : attempts;
     const messages = contextMessages(history, current.user);
     const controller = new AbortController();
@@ -94,8 +98,8 @@ export function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           requestId: current.requestId,
-          provider,
-          thinking: provider === 'local' ? thinking : geminiSummaries,
+          provider: current.provider,
+          thinking: currentThinking,
           messages,
         }),
         signal: controller.signal,
@@ -142,6 +146,15 @@ export function App() {
     setAwayFromBottom(false);
     composer.current?.focus();
   }
+  function changeProvider(nextProvider: ChatRequest['provider']) {
+    if (
+      !config ||
+      activeRequest.current ||
+      !config.providers[nextProvider].available
+    )
+      return;
+    setProvider(nextProvider);
+  }
   return (
     <main className="app">
       <header>
@@ -159,9 +172,9 @@ export function App() {
           <select
             id="provider"
             value={provider}
-            disabled={attempts.length > 0 || !config}
+            disabled={busy || !config}
             onChange={(event) =>
-              setProvider(event.target.value as ChatRequest['provider'])
+              changeProvider(event.target.value as ChatRequest['provider'])
             }
           >
             <option value="local">Local</option>
@@ -206,8 +219,9 @@ export function App() {
       )}
       {provider === 'gemini' && (
         <p className="cloud-note">
-          Messages in this conversation will be sent to Google. Provider
-          availability reflects configuration, not a connectivity check.
+          Sending or retrying with Gemini sends your question and completed
+          conversation history to Google. Provider availability reflects
+          configuration, not a connectivity check.
         </p>
       )}
       <div

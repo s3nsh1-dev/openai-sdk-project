@@ -1,4 +1,9 @@
-import type { StreamEvent, Usage, Message } from '../shared/protocol';
+import type {
+  ChatRequest,
+  StreamEvent,
+  Usage,
+  Message,
+} from '../shared/protocol';
 export type Status =
   | 'waiting'
   | 'receiving reasoning'
@@ -9,6 +14,8 @@ export type Status =
   | 'failed';
 export type Attempt = {
   requestId: string;
+  provider: ChatRequest['provider'];
+  model: string;
   user: string;
   answer: string;
   reasoning: string;
@@ -24,9 +31,16 @@ export function isActive(status: Status) {
     status === 'answering'
   );
 }
-export function newAttempt(requestId: string, user: string): Attempt {
+export function newAttempt(
+  requestId: string,
+  user: string,
+  provider: ChatRequest['provider'],
+  model: string,
+): Attempt {
   return {
     requestId,
+    provider,
+    model,
     user,
     answer: '',
     reasoning: '',
@@ -39,7 +53,9 @@ export function reduceAttempt(state: Attempt, event: StreamEvent): Attempt {
     return state;
   switch (event.type) {
     case 'start':
-      return state;
+      return event.provider === state.provider
+        ? { ...state, model: event.model }
+        : state;
     case 'reasoning_delta':
       return event.text
         ? {
