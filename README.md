@@ -1,6 +1,6 @@
 # Local chat
 
-A local JavaScript tutor built with React, TypeScript, Express, and the OpenAI SDK. It supports streaming answers, optional local reasoning, multi-turn chat, Markdown, Stop, Retry, and explicit Gemini selection.
+A local JavaScript tutor built with React, TypeScript, Express, and the OpenAI SDK. It supports streaming answers, optional local reasoning, multi-turn chat, Markdown, Stop, Retry, and explicit Gemini selection. Answers, Local reasoning, and Gemini thought summaries render as formatted Markdown.
 
 Local chat uses Ollama `qwen3.5:4b` by default and preserves existing model tuning. Gemini defaults to `gemini-3.8-flash` and never runs as an automatic fallback.
 

@@ -9,7 +9,7 @@ Express serves a personal chat application. Conversation state lives in React me
 | Browser application | [App.tsx](src/client/App.tsx) | Provider selection, composer, request identity, Stop, Retry, scroll position |
 | Display state and history | [state.ts](src/client/state.ts) | Attempt provider/model and lifecycle states; only complete exchanges enter API history |
 | Browser transport | [stream.ts](src/client/stream.ts) | Decode UTF-8, parse SSE, validate events, correlate request IDs, require a terminal result |
-| Rendering | [Markdown.tsx](src/client/Markdown.tsx), [Turn.tsx](src/client/Turn.tsx) | Safe Markdown, plain reasoning, code Copy, response status |
+| Rendering | [Markdown.tsx](src/client/Markdown.tsx), [Turn.tsx](src/client/Turn.tsx) | Safe Markdown for answers and provider-supplied reasoning, code Copy, response status |
 | Shared contracts | [protocol.ts](src/shared/protocol.ts) | Zod request, event, and public configuration schemas with inferred TypeScript types |
 | HTTP entry | [app.ts](src/server/app.ts), [index.ts](src/server/index.ts) | Body-size limit, API routes, static files, loopback binding |
 | Access policy | [access.ts](src/server/access.ts) | Host/Origin/Fetch Metadata validation, owner authentication, browser security headers, ingress checks before parsing |

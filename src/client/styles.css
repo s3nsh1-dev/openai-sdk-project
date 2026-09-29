@@ -172,13 +172,16 @@ h2 {
   color: #253a30;
   overflow-wrap: anywhere;
 }
-.answer p {
+.answer p,
+.reasoning p {
   margin: 12px 0;
 }
-.answer a {
+.answer a,
+.reasoning a {
   color: #1a6940;
 }
-.answer table {
+.answer table,
+.reasoning table {
   display: block;
   overflow: auto;
   border-collapse: collapse;
@@ -199,7 +202,6 @@ summary {
   cursor: pointer;
 }
 .reasoning {
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   color: #4b5f50;
   margin-top: 12px;

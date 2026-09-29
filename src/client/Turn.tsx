@@ -30,7 +30,9 @@ export function Turn({ attempt, now }: { attempt: Attempt; now: number }) {
             onToggle={(event) => setReasoningOpen(event.currentTarget.open)}
           >
             <summary>Reasoning supplied by the model</summary>
-            <div className="reasoning">{attempt.reasoning}</div>
+            <div className="reasoning">
+              <Markdown text={attempt.reasoning} />
+            </div>
           </details>
         )}
         {attempt.answer && (
