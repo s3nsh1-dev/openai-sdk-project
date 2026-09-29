@@ -11,6 +11,34 @@ test.beforeEach(async ({ page }) => {
     page.getByRole('combobox', { name: 'Provider', exact: true }),
   ).toBeEnabled();
 });
+test('identifies provider service unavailability and recovers only on explicit Retry', async ({
+  page,
+}, info) => {
+  const requests: { requestId: string; provider: string }[] = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname === '/api/chat')
+      requests.push(request.postDataJSON());
+  });
+  await page
+    .getByRole('combobox', { name: 'Provider', exact: true })
+    .selectOption('gemini');
+  await page.getByRole('textbox').fill(`[service503] ${info.project.name}`);
+  await page.getByRole('button', { name: 'Send message' }).click();
+  await expect(page.getByRole('status')).toHaveText('failed');
+  await expect(page.locator('.error')).toContainText(
+    'temporarily unavailable (HTTP 503)',
+  );
+  await expect(page.locator('.error')).not.toContainText(
+    'Private fixture details',
+  );
+  expect(requests).toHaveLength(1);
+  await page.getByRole('button', { name: 'Retry last turn' }).click();
+  await expect(page.getByRole('status')).toHaveText('completed');
+  await expect(page.getByRole('region', { name: 'Chat turn' })).toHaveCount(1);
+  expect(requests).toHaveLength(2);
+  expect(requests[1].provider).toBe('gemini');
+  expect(requests[1].requestId).not.toBe(requests[0].requestId);
+});
 test('streams safe Markdown, follows up, copies code, and clears history', async ({
   page,
   context,

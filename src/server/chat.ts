@@ -8,7 +8,7 @@ import {
 } from '../shared/protocol';
 import { normalizeChunk, StreamFailure } from './normalize';
 import { createProviders, type Providers } from './provider';
-import { safeError } from './errors';
+import { providerStatus, safeError } from './errors';
 import { writeFrame } from './sse';
 import { createSecurityState, type SecurityState } from './security-state';
 export type RequestLog = {
@@ -17,6 +17,7 @@ export type RequestLog = {
   durationMs: number;
   finishReason: string;
   usage?: Usage;
+  upstreamStatus?: number;
 };
 export function createChatHandler(
   config: Config,
@@ -68,6 +69,7 @@ export function createChatHandler(
     let reason: string | null = null;
     let answer = '';
     let usage: Usage | undefined;
+    let upstreamStatus: number | undefined;
     let idleTimer: ReturnType<typeof setTimeout> | undefined;
     const expire = (code: string, message: string) => {
       deadline = new StreamFailure(code, message);
@@ -171,6 +173,7 @@ export function createChatHandler(
         usage,
       });
     } catch (error) {
+      upstreamStatus = providerStatus(error);
       const failure = safeError(deadline ?? error);
       reason =
         controller.signal.aborted && !deadline ? 'stopped' : failure.code;
@@ -203,6 +206,7 @@ export function createChatHandler(
         durationMs: Date.now() - started,
         finishReason: reason ?? 'unknown',
         usage,
+        upstreamStatus,
       });
     }
   };

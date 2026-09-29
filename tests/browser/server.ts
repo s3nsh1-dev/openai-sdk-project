@@ -12,6 +12,11 @@ const fake = await listen(async (req, res) => {
   const last = input.messages.at(-1).content as string;
   const count = (attempts.get(last) ?? 0) + 1;
   attempts.set(last, count);
+  if (last.includes('[service503]') && count === 1) {
+    res.writeHead(503, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { message: 'Private fixture details' } }));
+    return;
+  }
   res.writeHead(200, { 'content-type': 'text/event-stream' });
   res.flushHeaders();
   const send = (value: unknown) => {

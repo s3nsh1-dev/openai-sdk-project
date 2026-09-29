@@ -10,7 +10,9 @@ export async function consumeStream(
     throw new Error(
       typeof body?.error === 'string'
         ? body.error
-        : 'The application server rejected this request.',
+        : response.status >= 500
+          ? `The application server is unavailable (HTTP ${response.status}). Check that it is running, then retry explicitly.`
+          : `The application server rejected this request (HTTP ${response.status}).`,
     );
   }
   if (

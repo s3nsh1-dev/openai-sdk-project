@@ -1,6 +1,27 @@
 import { expect, it } from 'vitest';
 import { consumeStream } from '../src/client/stream';
 import type { StreamEvent } from '../src/shared/protocol';
+it('identifies an unavailable application server without exposing a proxy response body', async () => {
+  await expect(
+    consumeStream(
+      new Response('<html>private proxy details</html>', { status: 500 }),
+      () => {},
+      'r',
+    ),
+  ).rejects.toThrow(/application server.*unavailable.*HTTP 500/i);
+});
+it('preserves the safe JSON rejection from application security checks', async () => {
+  await expect(
+    consumeStream(
+      Response.json(
+        { error: 'Daily provider token allowance reached.' },
+        { status: 429 },
+      ),
+      () => {},
+      'r',
+    ),
+  ).rejects.toThrow('Daily provider token allowance reached.');
+});
 function response(text: string, size: number) {
   const bytes = new TextEncoder().encode(text);
   return new Response(

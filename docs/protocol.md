@@ -87,11 +87,16 @@ data: {"type":"error","requestId":"example-1","code":"idle_timeout","message":"T
 | credentials | Provider HTTP 401 or 403 |
 | model_unavailable | Provider HTTP 404 |
 | provider_unavailable | Other provider connection or service failure |
+| provider_request | Provider HTTP 400 or 422 rejected the selected model/settings or request |
 | malformed_stream | Invalid provider JSON or incompatible chunk shape |
 | unexpected_end | Provider iteration ended with no finish reason |
 | empty_answer | Normal stop with no nonempty answer |
 
 The browser validates application event shapes, ignores IDs that do not match its current request, and closes its reader after one matching terminal event. EOF without one is a connection failure. The reducer separately rejects updates after completion, failure, incomplete output, or Stop. This second check protects state even if another caller misroutes an event.
+
+Provider 5xx failures use `provider_unavailable` with a safe status-specific message instead of claiming a network connection failure. Google may also send a numeric error code inside an HTTP 200 SSE response; the server classifies that code when it is an integer from 400 through 599. Request logs record only that numeric `upstreamStatus`, alongside the existing request metadata. Raw error bodies, headers, keys, prompts, and output are excluded. No automatic retry or provider fallback is added.
+
+For a non-JSON error response from the application or development proxy, the browser includes its HTTP status and identifies 5xx as application-server unavailability. Safe JSON rejection messages, including authentication and quota checks, retain priority.
 
 `GET /api/health` returns `{"status":"ok"}`. `GET /api/config` returns public provider name/model/availability and the numeric limits. Its schema also lives in `src/shared/protocol.ts`. Both require owner authentication in protected mode. Neither endpoint tests provider generation or returns credentials.
 

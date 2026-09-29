@@ -99,6 +99,7 @@ Conversation history remains in browser memory. Security counters alone persist 
 - An input-budget error means the conservative estimate is too large for the selected provider. Local has a smaller budget than Gemini, so a long Gemini conversation may not fit after switching to Local. The transcript remains visible; select Gemini and explicitly Retry, shorten the message, or start a new chat. History is not silently trimmed.
 - An incomplete reasoning-only response can mean the output budget was spent before an answer. Disable Local thinking or ask a shorter question.
 - A missing model or provider connection error needs the local model/server or server configuration checked. Gemini failures never trigger Local, and Local failures never trigger Gemini.
+- A provider HTTP 503 means that generation service is unavailable for that request. Wait before using Retry. The app displays the status and records a numeric `upstreamStatus` in its server log, without logging provider response bodies or keys. Other provider 5xx errors also show their status. Gemini service errors and an unavailable application server have distinct messages; Google describes retryable service errors in its [troubleshooting guide](https://ai.google.dev/gemini-api/docs/troubleshooting).
 - A Playwright executable error usually needs `npx playwright install chromium` for the installed package version.
 
 ## Technical documentation
