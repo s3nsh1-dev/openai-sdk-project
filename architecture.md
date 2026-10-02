@@ -10,6 +10,7 @@ Express serves a personal chat application. Conversation state lives in React me
 | Display state and history | [state.ts](src/client/state.ts) | Attempt provider/model and lifecycle states; only complete exchanges enter API history |
 | Browser transport | [stream.ts](src/client/stream.ts) | Decode UTF-8, parse SSE, validate events, correlate request IDs, require a terminal result |
 | Rendering | [Markdown.tsx](src/client/Markdown.tsx), [Turn.tsx](src/client/Turn.tsx) | Safe Markdown for answers and provider-supplied reasoning, code Copy, response status |
+| Practice desk presentation | [Welcome.tsx](src/client/Welcome.tsx), [Icon.tsx](src/client/Icon.tsx), [styles.css](src/client/styles.css) | Draft-only starters, decorative icons, dark theme, responsive layout, focus and reduced-motion styles |
 | Shared contracts | [protocol.ts](src/shared/protocol.ts) | Zod request, event, and public configuration schemas with inferred TypeScript types |
 | HTTP entry | [app.ts](src/server/app.ts), [index.ts](src/server/index.ts) | Body-size limit, API routes, static files, loopback binding |
 | Access policy | [access.ts](src/server/access.ts) | Host/Origin/Fetch Metadata validation, owner authentication, browser security headers, ingress checks before parsing |
@@ -92,6 +93,8 @@ stateDiagram-v2
 The actual status label is `receiving reasoning`. All terminal states reject later events. Retry creates a fresh attempt ID and uses the currently selected provider and its thinking preference. It replaces the latest unsuccessful attempt without adding another user turn. New chat aborts active work, clears memory and the draft, and resets the provider to Local and both thinking preferences to false. A blocked provider result is displayed as incomplete with a specific error message. Only `completed` exchanges become future context.
 
 ## Switching providers between turns
+
+The practice desk places response settings in a desktop rail, changing to a compact header below 761 CSS pixels. The conversation is its own keyboard-focusable scroll region, while the composer stays below it. On short screens the page can scroll to keep controls reachable. Starter buttons provide editable draft text through a callback to `App`; they never call a provider. Empty conversations start at the introduction and allow ordinary reading scroll. After a question is sent, the existing near-bottom tracking controls response following and Jump to latest.
 
 The selector describes the next request. It is disabled during waiting, reasoning, and answering; the change handler also checks the active-request ref and provider availability. Switching preserves the transcript, draft, and scroll position and makes no generation request. Local thinking and Gemini summaries retain separate preferences.
 

@@ -13,6 +13,8 @@ import {
   type ChatRequest,
 } from '../shared/protocol';
 import { Turn } from './Turn';
+import { Icon } from './Icon';
+import { Welcome } from './Welcome';
 export function App() {
   const [config, setConfig] = useState<PublicConfig>();
   const [configError, setConfigError] = useState('');
@@ -57,8 +59,11 @@ export function App() {
   }, [busy]);
   useEffect(() => {
     if (followLatest.current && scroll.current)
-      scroll.current.scrollTop = scroll.current.scrollHeight;
-  }, [attempts, awayFromBottom]);
+      // Follow response output, but let a fresh chat start at its introduction.
+      scroll.current.scrollTop = attempts.length
+        ? scroll.current.scrollHeight
+        : 0;
+  }, [attempts]);
   async function send(retry = false) {
     if (
       !config ||
@@ -156,178 +161,262 @@ export function App() {
     setProvider(nextProvider);
   }
   return (
-    <main className="app">
-      <header>
-        <div>
-          <p className="eyebrow">LOCAL CHAT</p>
-          <h1>Ask. Try. Understand.</h1>
-        </div>
-        <button className="quiet" type="button" onClick={newChat}>
-          New chat
-        </button>
-      </header>
-      <div className="settings">
-        <label htmlFor="provider">
-          Provider
-          <select
-            id="provider"
-            value={provider}
-            disabled={busy || !config}
-            onChange={(event) =>
-              changeProvider(event.target.value as ChatRequest['provider'])
-            }
-          >
-            <option value="local">Local</option>
-            <option
-              value="gemini"
-              disabled={!config?.providers.gemini.available}
-            >
-              Gemini
-              {config && !config.providers.gemini.available
-                ? ' · key not configured'
-                : ''}
-            </option>
-          </select>
-        </label>
-        <span className="provider-badge">
-          {config?.providers[provider].model ?? 'Loading configuration…'}
-        </span>
-        <label>
-          <input
-            type="checkbox"
-            checked={provider === 'local' ? thinking : geminiSummaries}
-            disabled={busy}
-            aria-describedby="thinking-help"
-            onChange={(event) =>
-              provider === 'local'
-                ? setThinking(event.target.checked)
-                : setGeminiSummaries(event.target.checked)
-            }
-          />{' '}
-          {provider === 'local' ? 'Local thinking' : 'Gemini thought summaries'}
-        </label>
-      </div>
-      <p id="thinking-help" className="thinking-help">
-        {provider === 'local'
-          ? 'Thinking and answers share the available context. Shorter chats leave more room for a complete reply.'
-          : 'Gemini thinks automatically. This option requests a thought summary when the model supplies one.'}
-      </p>
-      {configError && (
-        <p className="error" role="alert">
-          {configError}
-        </p>
-      )}
-      {provider === 'gemini' && (
-        <p className="cloud-note">
-          Sending or retrying with Gemini sends your question and completed
-          conversation history to Google. Provider availability reflects
-          configuration, not a connectivity check.
-        </p>
-      )}
-      <div
-        className="conversation"
-        ref={scroll}
-        onScroll={() => {
-          const element = scroll.current;
-          if (element) {
-            const away =
-              element.scrollHeight - element.scrollTop - element.clientHeight >
-              100;
-            followLatest.current = !away;
-            setAwayFromBottom(away);
-          }
-        }}
-      >
-        {attempts.length === 0 && (
-          <section className="welcome">
-            <span className="welcome-mark">{'>_'}</span>
-            <h2>Your JavaScript practice space.</h2>
-            <p>
-              Ask a question, work through an example, or find out why your code
-              behaves that way.
-            </p>
-            <button
-              className="suggestion"
-              onClick={() => {
-                setText('Explain const and let with a small example.');
-                composer.current?.focus();
-              }}
-            >
-              Explain const and let <span aria-hidden="true">↗</span>
-            </button>
-            <p className="privacy">
-              One conversation, kept in this tab. Refreshing clears it.
-            </p>
-          </section>
-        )}
-        {attempts.map((attempt) => (
-          <Turn key={attempt.requestId} attempt={attempt} now={now} />
-        ))}
-      </div>
-      {awayFromBottom && (
-        <button
-          className="jump"
-          type="button"
-          onClick={() => {
-            followLatest.current = true;
-            setAwayFromBottom(false);
-            if (scroll.current)
-              scroll.current.scrollTop = scroll.current.scrollHeight;
-          }}
-        >
-          Jump to latest
-        </button>
-      )}
-      {latest && !busy && latest.status !== 'completed' && (
-        <button className="retry" type="button" onClick={() => void send(true)}>
-          Retry last turn
-        </button>
-      )}
-      <form
-        className="composer"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void send();
-        }}
-      >
-        <label htmlFor="message">Message your tutor</label>
-        <textarea
-          ref={composer}
-          id="message"
-          rows={3}
-          value={text}
-          placeholder="What are you working on?"
-          onChange={(event) => setText(event.target.value)}
-          onKeyDown={(event) => {
-            if (
-              event.key === 'Enter' &&
-              !event.shiftKey &&
-              !event.nativeEvent.isComposing &&
-              event.keyCode !== 229
-            ) {
-              event.preventDefault();
-              void send();
-            }
-          }}
-        />
-        <div className="composer-footer">
-          <span>Enter to send · Shift+Enter for a new line</span>
+    <div className="app">
+      <a className="skip-link" href="#message">
+        Skip to message
+      </a>
+      <aside className="control-rail" aria-label="Chat controls">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </span>
           <div>
-            {busy ? (
-              <button type="button" className="primary" onClick={stop}>
-                Stop response
-              </button>
-            ) : (
-              <button className="primary" disabled={!text.trim() || !config}>
-                Send message
-              </button>
-            )}
+            <span className="brand-name">
+              local chat<span className="brand-period">.</span>
+            </span>
+            <span className="brand-caption">A PERSONAL PRACTICE DESK</span>
           </div>
         </div>
-      </form>
-      <p className="footnote">
-        Answers can be wrong. Read and test generated code before using it.
-      </p>
-    </main>
+        <button className="new-chat" type="button" onClick={newChat}>
+          <Icon name="plus" />
+          New chat
+        </button>
+        <div className="desk-note">
+          <span className="eyebrow">THIS SESSION</span>
+          <p>
+            {attempts.length === 0
+              ? 'A fresh page.'
+              : `${attempts.length} ${attempts.length === 1 ? 'question' : 'questions'} explored.`}
+          </p>
+          <span>
+            Room to ask, experiment,
+            <br />
+            and connect the dots.
+          </span>
+          <div className="desk-diagram" aria-hidden="true">
+            <span />
+            <i />
+            <span />
+            <i />
+            <span />
+          </div>
+          <div className="desk-steps" aria-hidden="true">
+            <span>ASK</span>
+            <span>TRY</span>
+            <span>LEARN</span>
+          </div>
+        </div>
+        <section className="settings" aria-label="Response settings">
+          <div className="provider-setting">
+            <label className="eyebrow" htmlFor="provider">
+              Provider
+            </label>
+            <select
+              id="provider"
+              value={provider}
+              disabled={busy || !config}
+              onChange={(event) =>
+                changeProvider(event.target.value as ChatRequest['provider'])
+              }
+            >
+              <option value="local">Local</option>
+              <option
+                value="gemini"
+                disabled={!config?.providers.gemini.available}
+              >
+                Gemini
+                {config && !config.providers.gemini.available
+                  ? ' · key not configured'
+                  : ''}
+              </option>
+            </select>
+            <span className="provider-badge">
+              {config?.providers[provider].model ?? 'Loading configuration…'}
+            </span>
+          </div>
+          <div className="thinking-setting">
+            <label className="thinking-toggle">
+              <input
+                type="checkbox"
+                checked={provider === 'local' ? thinking : geminiSummaries}
+                disabled={busy}
+                aria-describedby="thinking-help"
+                onChange={(event) =>
+                  provider === 'local'
+                    ? setThinking(event.target.checked)
+                    : setGeminiSummaries(event.target.checked)
+                }
+              />
+              <span>
+                {provider === 'local'
+                  ? 'Local thinking'
+                  : 'Gemini thought summaries'}
+              </span>
+            </label>
+            <p id="thinking-help" className="thinking-help">
+              {provider === 'local'
+                ? 'Thinking shares the available context. Shorter chats leave more room for a complete reply.'
+                : 'Requests a thought summary when supplied. Gemini thinks automatically.'}
+            </p>
+          </div>
+        </section>
+        <p className="rail-footnote">
+          <span className="session-dot" aria-hidden="true" />
+          Kept in this tab. Refreshing clears it.
+        </p>
+      </aside>
+      <main className="workspace" aria-label="Practice desk">
+        <header className="workspace-header">
+          <div className="workspace-title">
+            <span className="workspace-index" aria-hidden="true">
+              01 /
+            </span>
+            <h1>Practice desk</h1>
+            <span className="subject-tag">JavaScript</span>
+          </div>
+          <span className="session-label">ONE CONVERSATION. YOUR PACE.</span>
+        </header>
+        {configError && (
+          <p className="error config-error" role="alert">
+            {configError}
+          </p>
+        )}
+        {provider === 'gemini' && (
+          <p className="cloud-note">
+            Sending or retrying with Gemini sends your question and completed
+            conversation history to Google. Availability reflects configuration,
+            not a connectivity check.
+          </p>
+        )}
+        <div
+          className="conversation"
+          ref={scroll}
+          tabIndex={0}
+          role="region"
+          aria-label="Conversation"
+          onScroll={() => {
+            // Welcome content is ordinary reading, not a response to follow.
+            if (attempts.length === 0) return;
+            const element = scroll.current;
+            if (element) {
+              const away =
+                element.scrollHeight -
+                  element.scrollTop -
+                  element.clientHeight >
+                100;
+              followLatest.current = !away;
+              setAwayFromBottom(away);
+            }
+          }}
+        >
+          <div className="conversation-inner">
+            {attempts.length === 0 && (
+              <Welcome
+                onChoose={(prompt) => {
+                  setText(prompt);
+                  composer.current?.focus();
+                }}
+              />
+            )}
+            {attempts.map((attempt, index) => (
+              <Turn
+                key={attempt.requestId}
+                attempt={attempt}
+                now={now}
+                number={index + 1}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="compose-area">
+          {awayFromBottom && (
+            <button
+              className="jump"
+              type="button"
+              onClick={() => {
+                followLatest.current = true;
+                setAwayFromBottom(false);
+                if (scroll.current)
+                  scroll.current.scrollTop = scroll.current.scrollHeight;
+              }}
+            >
+              Jump to latest <span aria-hidden="true">↓</span>
+            </button>
+          )}
+          {latest && !busy && latest.status !== 'completed' && (
+            <button
+              className="retry"
+              type="button"
+              onClick={() => void send(true)}
+            >
+              Retry last turn <Icon name="arrow" />
+            </button>
+          )}
+          <form
+            className="composer"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void send();
+            }}
+          >
+            <label htmlFor="message">Message your tutor</label>
+            <textarea
+              ref={composer}
+              id="message"
+              rows={2}
+              value={text}
+              placeholder="A question, an idea, a piece of code…"
+              onChange={(event) => setText(event.target.value)}
+              onKeyDown={(event) => {
+                if (
+                  event.key === 'Enter' &&
+                  !event.shiftKey &&
+                  !event.nativeEvent.isComposing &&
+                  event.keyCode !== 229
+                ) {
+                  event.preventDefault();
+                  void send();
+                }
+              }}
+            />
+            <div className="composer-footer">
+              <span className="keyboard-hint">
+                <kbd>↵</kbd> Send <span className="hint-divider">/</span>{' '}
+                <kbd>Shift ↵</kbd> New line
+              </span>
+              {busy ? (
+                <button
+                  type="button"
+                  className="primary stop-button"
+                  onClick={stop}
+                >
+                  Stop response <Icon name="stop" />
+                </button>
+              ) : (
+                <button
+                  className="primary"
+                  disabled={
+                    !text.trim() ||
+                    !config ||
+                    !config.providers[provider].available
+                  }
+                >
+                  Send message <Icon name="arrow" />
+                </button>
+              )}
+            </div>
+          </form>
+          <p className="footnote">
+            <span className="mobile-memory">
+              Kept in this tab. Refreshing clears it.
+            </span>
+            Stay curious. Answers can be wrong; read and test generated code.
+          </p>
+        </div>
+      </main>
+    </div>
   );
 }

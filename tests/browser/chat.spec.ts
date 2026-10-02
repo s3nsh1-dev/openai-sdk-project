@@ -321,9 +321,12 @@ test('respects readers scrolling upward and offers Jump to latest', async ({
   ).toBeLessThan(5);
 });
 test('fits the viewport and shows the empty state', async ({ page }, info) => {
+  await expect(page.locator('.conversation')).toHaveJSProperty('scrollTop', 0);
   await expect(
-    page.getByRole('heading', { name: 'Your JavaScript practice space.' }),
-  ).toBeVisible();
+    page.getByRole('heading', {
+      name: 'Small questions. Lasting understanding.',
+    }),
+  ).toBeInViewport();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -440,4 +443,159 @@ test('serves the built page with a restrictive CSP and no inline-script exceptio
   await page.getByRole('textbox').press('Enter');
   await expect(page.getByRole('status')).toHaveText('completed');
   expect(violations).toEqual([]);
+});
+
+test('uses prompt starters from the keyboard without accidental generation', async ({
+  page,
+}) => {
+  const sent: ChatRequest[] = [];
+  page.on('request', (request) => {
+    if (request.url().endsWith('/api/chat')) sent.push(request.postDataJSON());
+  });
+  const starter = page.getByRole('button', { name: /Trace the execution/ });
+  await starter.focus();
+  await starter.press('Enter');
+  const input = page.getByRole('textbox');
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue(
+    'Walk me through how the JavaScript event loop runs a small example, step by step.',
+  );
+  expect(sent).toHaveLength(0);
+  await input.fill('My own version of the question');
+  await input.press('Enter');
+  await expect(page.getByRole('status')).toHaveText('completed');
+  expect(sent[0].messages).toEqual([
+    { role: 'user', content: 'My own version of the question' },
+  ]);
+  await page.getByRole('button', { name: 'New chat' }).click();
+  await expect(
+    page.getByRole('button', { name: /Trace the execution/ }),
+  ).toBeVisible();
+  await expect(page.locator('.conversation')).toHaveJSProperty('scrollTop', 0);
+  await expect(input).toHaveValue('');
+});
+
+test('allows browsing the whole welcome without jumping back or showing chat scroll controls', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  const conversation = page.locator('.conversation');
+  await conversation.evaluate((element) => {
+    element.scrollTop = 40;
+    element.dispatchEvent(new Event('scroll'));
+  });
+  await expect(conversation).toHaveJSProperty('scrollTop', 40);
+  await conversation.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+    element.dispatchEvent(new Event('scroll'));
+  });
+  await expect(
+    page.getByRole('button', { name: /Try a small challenge/ }),
+  ).toBeInViewport();
+  await expect
+    .poll(() =>
+      conversation.evaluate(
+        (element) =>
+          element.scrollHeight - element.scrollTop - element.clientHeight,
+      ),
+    )
+    .toBeLessThan(2);
+  await expect(
+    page.getByRole('button', { name: 'Jump to latest' }),
+  ).toHaveCount(0);
+});
+
+test('keeps controls and long formatted output usable at narrow and short sizes', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const code = `const longValue = "${'a'.repeat(180)}";`;
+  const markdown = `## A worked example\n\n**Step one**: read the code.\n\n| Value | Meaning |\n| --- | --- |\n| 1 | First |\n\n\`\`\`js\n${code}\n\`\`\``;
+  await page.route('**/api/chat', async (route) => {
+    const { requestId } = route.request().postDataJSON();
+    const events = [
+      { type: 'reasoning_delta', requestId, text: markdown },
+      { type: 'answer_delta', requestId, text: markdown },
+      { type: 'finish', requestId, outcome: 'completed', reason: 'stop' },
+    ];
+    await route.fulfill({
+      contentType: 'text/event-stream',
+      body: events
+        .map((event) => `data: ${JSON.stringify(event)}\n\n`)
+        .join(''),
+    });
+  });
+  for (const size of [
+    { width: 320, height: 640 },
+    { width: 768, height: 600 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(size);
+    await page
+      .getByRole('combobox', { name: 'Provider', exact: true })
+      .selectOption('gemini');
+    await expect(page.locator('.cloud-note')).toBeVisible();
+    await page
+      .getByRole('checkbox', { name: 'Gemini thought summaries' })
+      .check();
+    await page.getByRole('textbox').fill('Show formatted code');
+    await page.getByRole('button', { name: 'Send message' }).click();
+    await expect(page.getByRole('status')).toHaveText('completed');
+    await page.locator('summary').click();
+    await expect(page.locator('.reasoning h2')).toHaveText('A worked example');
+    await expect(page.locator('.answer table')).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    const blocks = page.locator('pre');
+    for (const block of await blocks.all()) {
+      expect(
+        await block.evaluate(
+          (element) => element.scrollWidth > element.clientWidth,
+        ),
+      ).toBe(true);
+    }
+    const input = page.getByRole('textbox');
+    await input.fill('Follow-up remains editable');
+    await expect(input).toHaveValue('Follow-up remains editable');
+    await page.screenshot({
+      path: `test-results/${info.project.name}-${size.width}-formatted.png`,
+      fullPage: true,
+    });
+    await page.getByRole('button', { name: 'New chat' }).click();
+    await expect(
+      page.getByRole('combobox', { name: 'Provider', exact: true }),
+    ).toHaveValue('local');
+    await expect(input).toBeFocused();
+  }
+  expect(errors).toEqual([]);
+});
+
+test('keeps a draft editable and sending disabled when configuration fails', async ({
+  page,
+}) => {
+  await page.route('**/api/config', (route) =>
+    route.fulfill({ status: 503, body: 'Unavailable' }),
+  );
+  await page.reload();
+  await expect(page.getByRole('alert')).toContainText(
+    'Could not load provider configuration',
+  );
+  await page.getByRole('textbox').fill('Keep this question');
+  await expect(
+    page.getByRole('button', { name: 'Send message' }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole('combobox', { name: 'Provider', exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByRole('textbox')).toHaveValue('Keep this question');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 });

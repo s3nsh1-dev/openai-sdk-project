@@ -113,6 +113,40 @@ function setup(
   };
 }
 
+it.each([
+  ['Understand a concept', 'Explain const and let with a small example.'],
+  [
+    'Trace the execution',
+    'Walk me through how the JavaScript event loop runs a small example, step by step.',
+  ],
+  [
+    'Try a small challenge',
+    'Give me a short JavaScript array exercise. Let me try it before showing the answer.',
+  ],
+])(
+  'prepares the %s starter for editing without sending it',
+  async (label, prompt) => {
+    const chat = setup();
+    await chat.user.selectOptions(
+      await screen.findByRole('combobox'),
+      'gemini',
+    );
+    await chat.user.click(
+      screen.getByRole('button', { name: new RegExp(label) }),
+    );
+    expect(screen.getByRole('textbox')).toHaveValue(prompt);
+    expect(screen.getByRole('textbox')).toHaveFocus();
+    expect(chat.requests).toHaveLength(0);
+    await chat.user.type(screen.getByRole('textbox'), ' Keep it concise.');
+    await chat.user.click(screen.getByRole('button', { name: 'Send message' }));
+    expect(chat.requests[0]).toMatchObject({
+      provider: 'gemini',
+      messages: [{ role: 'user', content: `${prompt} Keep it concise.` }],
+    });
+    await chat.complete(0, 'A useful starting point.');
+  },
+);
+
 it('switches Local → Gemini → Local with shared completed history and separate thinking settings', async () => {
   const chat = setup();
   await chat.user.click(

@@ -20,6 +20,8 @@ Open http://127.0.0.1:5173. Vite proxies `/api` to Express on port 3001. Both bi
 
 Type a question and press Enter. Shift+Enter inserts a newline. Local thinking is off initially. Gemini instead offers a thought-summary checkbox; Gemini thinks internally even when summaries are unchecked. Each provider remembers its own checkbox preference until New chat.
 
+The practice desk groups provider controls in a desktop rail or compact mobile header. Its three starting points help explain a concept, trace execution, or try an exercise. Selecting one fills the composer for editing; it does not send a request. Numbered exchanges, collapsible reasoning, and scrollable code blocks keep longer replies readable. Keyboard users can skip directly to the composer or focus the conversation to scroll it.
+
 Switch providers between turns using the Provider selector. During generation, use Stop first. Selection preserves the conversation and any unsent draft, and makes no generation request. Send and Retry use the selected provider; Retry replaces the latest unsuccessful attempt without duplicating its question. Each response shows its provider and model.
 
 Both providers receive the same completed conversation history plus the current question. Sending or retrying with Gemini sends that text to Google, including earlier Local exchanges. Reasoning and failed, incomplete, or stopped answers are excluded from future context. Unsuccessful attempts stay visible until replaced by Retry or cleared. New chat clears the conversation, resets Local and both checkbox preferences, and clears the draft. Refreshing also clears history.
